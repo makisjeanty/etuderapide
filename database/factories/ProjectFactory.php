@@ -18,20 +18,20 @@ class ProjectFactory extends Factory
 
     public function definition(): array
     {
-        $title = fake()->sentence(3);
+        $title = $this->faker->sentence(3);
 
         return [
-            'user_id' => User::factory(),
+            'user_id' => User::factory()->admin(),
             'category_id' => Category::factory(),
             'title' => $title,
-            'slug' => Str::slug($title).'-'.fake()->unique()->numerify('####'),
-            'summary' => fake()->paragraph(),
-            'description' => fake()->paragraphs(4, true),
+            'slug' => Str::slug($title).'-'.$this->faker->unique()->numerify('####'),
+            'summary' => $this->faker->paragraph(),
+            'description' => $this->faker->paragraphs(4, true),
             'status' => ProjectStatus::Draft,
             'featured_image' => null,
-            'tech_stack' => ['PHP', 'Laravel'],
-            'repository_url' => fake()->optional()->url(),
-            'demo_url' => fake()->optional()->url(),
+            'tech_stack_lines' => "Laravel\nTailwind CSS",
+            'repository_url' => $this->faker->optional()->url(),
+            'demo_url' => $this->faker->optional()->url(),
             'started_at' => now()->subMonths(2),
             'finished_at' => now()->subMonth(),
             'is_featured' => false,

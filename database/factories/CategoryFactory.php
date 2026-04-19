@@ -15,13 +15,13 @@ class CategoryFactory extends Factory
 
     public function definition(): array
     {
-        $name = fake()->unique()->word;
+        $name = $this->faker->unique()->word;
 
         return [
             'name' => ucfirst($name),
             'slug' => Str::slug($name),
-            'description' => fake()->sentence(),
-            'type' => fake()->randomElement(['general', 'post', 'project', 'service']),
+            'description' => $this->faker->sentence(),
+            'type' => $this->faker->randomElement(['general', 'post', 'project', 'service']),
         ];
     }
 }

@@ -17,14 +17,16 @@ class PostFactory extends Factory
 
     public function definition(): array
     {
-        $title = fake()->sentence(3);
+        $title = $this->faker->sentence(3);
+        $user = User::query()->where('is_admin', true)->first() ?? User::factory()->admin()->create();
+        $category = Category::query()->whereIn('type', ['post', 'general'])->first() ?? Category::factory()->state(['type' => 'post'])->create();
 
         return [
-            'user_id' => User::factory(),
-            'category_id' => Category::factory(),
+            'author_id' => $user->id,
+            'category_id' => $category->id,
             'title' => $title,
-            'slug' => Str::slug($title).'-'.fake()->unique()->numerify('####'),
-            'body' => fake()->paragraphs(3, true),
+            'slug' => Str::slug($title).'-'.$this->faker->unique()->numerify('####'),
+            'body' => $this->faker->paragraphs(3, true),
             'is_published' => false,
             'published_at' => null,
         ];
