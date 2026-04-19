@@ -8,6 +8,7 @@ services:
     env_file: .env
     depends_on:
       - db
+      - redis
     networks:
       - etuderapide-net
 
@@ -27,6 +28,12 @@ services:
     build:
       context: ./pipeline
     image: etuderapide-pipeline
+    restart: always
+    networks:
+      - etuderapide-net
+
+  redis:
+    image: redis:alpine
     restart: always
     networks:
       - etuderapide-net
