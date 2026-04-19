@@ -1,0 +1,20 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ __('Create post') }}</h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <form method="post" action="{{ route('admin.posts.store') }}" class="p-6 space-y-6">
+                    @csrf
+                    @include('admin.posts._form', ['post' => null])
+                    <div class="flex items-center gap-4">
+                        <x-primary-button>{{ __('Save') }}</x-primary-button>
+                        <a href="{{ route('admin.posts.index') }}" class="text-sm text-gray-600 hover:text-gray-900">{{ __('Cancel') }}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</x-app-layout>

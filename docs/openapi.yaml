@@ -1,0 +1,1342 @@
+openapi: 3.1.0
+info:
+  title: Etuderapide API
+  version: 1.1.0
+  description: >
+    API JSON da Etuderapide. Esta especificacao prioriza a superficie
+    versionada em /api/v1. As rotas legadas sem versao seguem disponiveis
+    apenas por compatibilidade.
+servers:
+  - url: http://localhost
+tags:
+  - name: Auth
+  - name: Tokens
+  - name: Public
+  - name: Admin
+paths:
+  /api/v1/login:
+    post:
+      tags: [Auth]
+      summary: Emitir token Sanctum
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Token emitido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '422':
+          description: Credenciais invalidas ou abilities fora do escopo
+  /api/v1/me:
+    get:
+      tags: [Auth]
+      summary: Retornar usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil atual
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CurrentUser'
+  /api/v1/logout:
+    post:
+      tags: [Auth]
+      summary: Revogar token atual
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Token revogado
+  /api/v1/tokens:
+    get:
+      tags: [Tokens]
+      summary: Listar tokens do usuario autenticado
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Tokens emitidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IssuedToken'
+    post:
+      tags: [Tokens]
+      summary: Criar token nomeado
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTokenRequest'
+      responses:
+        '201':
+          description: Token criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTokenResponse'
+  /api/v1/tokens/{token}:
+    delete:
+      tags: [Tokens]
+      summary: Revogar token proprio
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TokenId'
+      responses:
+        '204':
+          description: Token removido
+  /api/v1/public/posts:
+    get:
+      tags: [Public]
+      summary: Listar posts publicados
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/CategoryId'
+        - in: query
+          name: tag
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista paginada de posts publicados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicPostListResponse'
+  /api/v1/public/posts/{slug}:
+    get:
+      tags: [Public]
+      summary: Buscar post publicado por slug
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Post publicado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PublicPostDetail'
+  /api/v1/public/projects:
+    get:
+      tags: [Public]
+      summary: Listar projetos publicados
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/CategoryId'
+        - in: query
+          name: is_featured
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista paginada de projetos publicados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicProjectListResponse'
+  /api/v1/public/projects/{slug}:
+    get:
+      tags: [Public]
+      summary: Buscar projeto publicado por slug
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Projeto publicado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PublicProjectDetail'
+  /api/v1/public/services:
+    get:
+      tags: [Public]
+      summary: Listar servicos ativos
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/CategoryId'
+      responses:
+        '200':
+          description: Lista paginada de servicos ativos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicServiceListResponse'
+  /api/v1/public/services/{slug}:
+    get:
+      tags: [Public]
+      summary: Buscar servico ativo por slug
+      parameters:
+        - $ref: '#/components/parameters/Slug'
+      responses:
+        '200':
+          description: Servico ativo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PublicServiceDetail'
+  /api/v1/admin/summary:
+    get:
+      tags: [Admin]
+      summary: Resumo do dashboard admin
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Resumo agregado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/DashboardSummary'
+  /api/v1/admin/leads:
+    get:
+      tags: [Admin]
+      summary: Listar leads com filtros e ordenacao
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/LegacyLimit'
+        - $ref: '#/components/parameters/Search'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [new, read, replied, archived]
+        - in: query
+          name: service_interest
+          schema:
+            type: string
+        - $ref: '#/components/parameters/CreatedFrom'
+        - $ref: '#/components/parameters/CreatedTo'
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            enum: [created_at, name, status, quoted_value]
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: Lista paginada de leads
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminLeadListResponse'
+  /api/v1/admin/leads/{lead}:
+    get:
+      tags: [Admin]
+      summary: Buscar lead por ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      responses:
+        '200':
+          description: Lead completo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AdminLeadDetail'
+    patch:
+      tags: [Admin]
+      summary: Atualizar lead
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLeadRequest'
+      responses:
+        '200':
+          description: Lead atualizado
+        '422':
+          description: Payload invalido
+    delete:
+      tags: [Admin]
+      summary: Remover lead
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      responses:
+        '204':
+          description: Lead removido
+  /api/v1/admin/posts:
+    get:
+      tags: [Admin]
+      summary: Listar posts admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/LegacyLimit'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/CategoryId'
+        - in: query
+          name: is_published
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/CreatedFrom'
+        - $ref: '#/components/parameters/CreatedTo'
+        - in: query
+          name: published_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: published_to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            enum: [created_at, updated_at, published_at, title]
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: Lista paginada de posts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminPostListResponse'
+    post:
+      tags: [Admin]
+      summary: Criar post
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWriteRequest'
+      responses:
+        '201':
+          description: Post criado
+  /api/v1/admin/posts/{post}:
+    get:
+      tags: [Admin]
+      summary: Buscar post por ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '200':
+          description: Post completo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AdminPostDetail'
+    patch:
+      tags: [Admin]
+      summary: Atualizar post
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWriteRequest'
+      responses:
+        '200':
+          description: Post atualizado
+    put:
+      tags: [Admin]
+      summary: Substituir post
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostWriteRequest'
+      responses:
+        '200':
+          description: Post atualizado
+    delete:
+      tags: [Admin]
+      summary: Remover post
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PostId'
+      responses:
+        '204':
+          description: Post removido
+  /api/v1/admin/projects:
+    get:
+      tags: [Admin]
+      summary: Listar projetos admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/LegacyLimit'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/CategoryId'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, published, archived]
+        - in: query
+          name: is_featured
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/CreatedFrom'
+        - $ref: '#/components/parameters/CreatedTo'
+        - in: query
+          name: finished_from
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: finished_to
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            enum: [created_at, updated_at, title, status, finished_at]
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: Lista paginada de projetos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProjectListResponse'
+    post:
+      tags: [Admin]
+      summary: Criar projeto
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectWriteRequest'
+      responses:
+        '201':
+          description: Projeto criado
+  /api/v1/admin/projects/{project}:
+    get:
+      tags: [Admin]
+      summary: Buscar projeto por ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '200':
+          description: Projeto completo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AdminProjectDetail'
+    patch:
+      tags: [Admin]
+      summary: Atualizar projeto
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectWriteRequest'
+      responses:
+        '200':
+          description: Projeto atualizado
+    put:
+      tags: [Admin]
+      summary: Substituir projeto
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectWriteRequest'
+      responses:
+        '200':
+          description: Projeto atualizado
+    delete:
+      tags: [Admin]
+      summary: Remover projeto
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ProjectId'
+      responses:
+        '204':
+          description: Projeto removido
+  /api/v1/admin/services:
+    get:
+      tags: [Admin]
+      summary: Listar servicos admin
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - $ref: '#/components/parameters/LegacyLimit'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/CategoryId'
+        - in: query
+          name: is_active
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/CreatedFrom'
+        - $ref: '#/components/parameters/CreatedTo'
+        - in: query
+          name: sort_by
+          schema:
+            type: string
+            enum: [created_at, updated_at, name, price_from]
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: Lista paginada de servicos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminServiceListResponse'
+    post:
+      tags: [Admin]
+      summary: Criar servico
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceWriteRequest'
+      responses:
+        '201':
+          description: Servico criado
+  /api/v1/admin/services/{service}:
+    get:
+      tags: [Admin]
+      summary: Buscar servico por ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ServiceId'
+      responses:
+        '200':
+          description: Servico completo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/AdminServiceDetail'
+    patch:
+      tags: [Admin]
+      summary: Atualizar servico
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ServiceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceWriteRequest'
+      responses:
+        '200':
+          description: Servico atualizado
+    put:
+      tags: [Admin]
+      summary: Substituir servico
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ServiceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceWriteRequest'
+      responses:
+        '200':
+          description: Servico atualizado
+    delete:
+      tags: [Admin]
+      summary: Remover servico
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ServiceId'
+      responses:
+        '204':
+          description: Servico removido
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+  parameters:
+    PerPage:
+      in: query
+      name: per_page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+    LegacyLimit:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+    Search:
+      in: query
+      name: search
+      schema:
+        type: string
+    CategoryId:
+      in: query
+      name: category_id
+      schema:
+        type: integer
+    CreatedFrom:
+      in: query
+      name: created_from
+      schema:
+        type: string
+        format: date
+    CreatedTo:
+      in: query
+      name: created_to
+      schema:
+        type: string
+        format: date
+    SortDirection:
+      in: query
+      name: sort_direction
+      schema:
+        type: string
+        enum: [asc, desc]
+    Slug:
+      in: path
+      name: slug
+      required: true
+      schema:
+        type: string
+    TokenId:
+      in: path
+      name: token
+      required: true
+      schema:
+        type: integer
+    LeadId:
+      in: path
+      name: lead
+      required: true
+      schema:
+        type: integer
+    PostId:
+      in: path
+      name: post
+      required: true
+      schema:
+        type: integer
+    ProjectId:
+      in: path
+      name: project
+      required: true
+      schema:
+        type: integer
+    ServiceId:
+      in: path
+      name: service
+      required: true
+      schema:
+        type: integer
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        device_name:
+          type: string
+        abilities:
+          type: array
+          items:
+            type: string
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        token_type:
+          type: string
+        abilities:
+          type: array
+          items:
+            type: string
+        user:
+          $ref: '#/components/schemas/LoginUser'
+    LoginUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        is_admin:
+          type: boolean
+        email_verified:
+          type: boolean
+    CurrentUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        is_admin:
+          type: boolean
+        email_verified:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+        abilities:
+          type: array
+          items:
+            type: string
+    CreateTokenRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        abilities:
+          type: array
+          items:
+            type: string
+    CreateTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        token_type:
+          type: string
+        abilities:
+          type: array
+          items:
+            type: string
+        data:
+          $ref: '#/components/schemas/IssuedTokenSummary'
+    IssuedTokenSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    IssuedToken:
+      allOf:
+        - $ref: '#/components/schemas/IssuedTokenSummary'
+        - type: object
+          properties:
+            abilities:
+              type: array
+              items:
+                type: string
+            last_used_at:
+              type: string
+              format: date-time
+              nullable: true
+            expires_at:
+              type: string
+              format: date-time
+              nullable: true
+            is_current:
+              type: boolean
+    DashboardSummary:
+      type: object
+      properties:
+        posts_count:
+          type: integer
+        projects_count:
+          type: integer
+        services_count:
+          type: integer
+        total_leads_count:
+          type: integer
+        new_leads_count:
+          type: integer
+        total_pipeline_value:
+          type: number
+        conversion_rate:
+          type: number
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        last_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        count:
+          type: integer
+        sort_by:
+          type: string
+          nullable: true
+        sort_direction:
+          type: string
+          nullable: true
+    CategoryRef:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        type:
+          type: string
+    PublicCategoryRef:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+    AuthorRef:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+    PublicAuthorRef:
+      type: object
+      nullable: true
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    TagRef:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+    AdminLeadItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        service_interest:
+          type: string
+          nullable: true
+        status:
+          type: string
+        quoted_value:
+          type: number
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+    AdminLeadDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminLeadItem'
+        - type: object
+          properties:
+            message:
+              type: string
+            internal_notes:
+              type: string
+              nullable: true
+            payment_link:
+              type: string
+              format: uri
+              nullable: true
+            updated_at:
+              type: string
+              format: date-time
+              nullable: true
+    AdminLeadListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminLeadItem'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    UpdateLeadRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [new, read, replied, archived]
+        internal_notes:
+          type: string
+          nullable: true
+        payment_link:
+          type: string
+          format: uri
+          nullable: true
+        quoted_value:
+          type: number
+          nullable: true
+          minimum: 0
+    AdminPostItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        is_published:
+          type: boolean
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        seo_title:
+          type: string
+          nullable: true
+        seo_description:
+          type: string
+          nullable: true
+        featured_image:
+          type: string
+          nullable: true
+        category:
+          $ref: '#/components/schemas/CategoryRef'
+        author:
+          $ref: '#/components/schemas/AuthorRef'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagRef'
+    AdminPostDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminPostItem'
+        - type: object
+          properties:
+            body:
+              type: string
+    AdminPostListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminPostItem'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    PublicPostDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminPostDetail'
+        - type: object
+          properties:
+            excerpt:
+              type: string
+            author:
+              $ref: '#/components/schemas/PublicAuthorRef'
+            category:
+              $ref: '#/components/schemas/PublicCategoryRef'
+    PublicPostListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicPostDetail'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    PostWriteRequest:
+      type: object
+      required: [title, body]
+      properties:
+        title:
+          type: string
+        category_id:
+          type: integer
+          nullable: true
+        slug:
+          type: string
+          nullable: true
+        body:
+          type: string
+        is_published:
+          type: boolean
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        featured_image:
+          type: string
+          nullable: true
+        seo_title:
+          type: string
+          nullable: true
+        seo_description:
+          type: string
+          nullable: true
+    AdminProjectItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        summary:
+          type: string
+          nullable: true
+        status:
+          type: string
+        featured_image:
+          type: string
+          nullable: true
+        tech_stack:
+          type: array
+          items:
+            type: string
+        demo_url:
+          type: string
+          format: uri
+          nullable: true
+        repository_url:
+          type: string
+          format: uri
+          nullable: true
+        started_at:
+          type: string
+          format: date
+          nullable: true
+        finished_at:
+          type: string
+          format: date
+          nullable: true
+        is_featured:
+          type: boolean
+        seo_title:
+          type: string
+          nullable: true
+        seo_description:
+          type: string
+          nullable: true
+        category:
+          $ref: '#/components/schemas/CategoryRef'
+        author:
+          $ref: '#/components/schemas/AuthorRef'
+    AdminProjectDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminProjectItem'
+        - type: object
+          properties:
+            description:
+              type: string
+              nullable: true
+    AdminProjectListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminProjectItem'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    PublicProjectDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminProjectDetail'
+        - type: object
+          properties:
+            author:
+              $ref: '#/components/schemas/PublicAuthorRef'
+            category:
+              $ref: '#/components/schemas/PublicCategoryRef'
+    PublicProjectListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicProjectDetail'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    ProjectWriteRequest:
+      type: object
+      required: [title, status]
+      properties:
+        title:
+          type: string
+        category_id:
+          type: integer
+          nullable: true
+        slug:
+          type: string
+          nullable: true
+        summary:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [draft, published, archived]
+        tech_stack_lines:
+          type: string
+          nullable: true
+        tech_stack:
+          type: array
+          items:
+            type: string
+        repository_url:
+          type: string
+          format: uri
+          nullable: true
+        demo_url:
+          type: string
+          format: uri
+          nullable: true
+        started_at:
+          type: string
+          format: date
+          nullable: true
+        finished_at:
+          type: string
+          format: date
+          nullable: true
+        is_featured:
+          type: boolean
+        seo_title:
+          type: string
+          nullable: true
+        seo_description:
+          type: string
+          nullable: true
+    AdminServiceItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        short_description:
+          type: string
+          nullable: true
+        price_from:
+          type: number
+          nullable: true
+        delivery_time:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        call_to_action:
+          type: string
+          nullable: true
+        featured_image:
+          type: string
+          nullable: true
+        seo_title:
+          type: string
+          nullable: true
+        seo_description:
+          type: string
+          nullable: true
+        category:
+          $ref: '#/components/schemas/CategoryRef'
+        author:
+          $ref: '#/components/schemas/AuthorRef'
+    AdminServiceDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminServiceItem'
+        - type: object
+          properties:
+            full_description:
+              type: string
+              nullable: true
+    AdminServiceListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminServiceItem'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    PublicServiceDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminServiceDetail'
+        - type: object
+          properties:
+            author:
+              $ref: '#/components/schemas/PublicAuthorRef'
+            category:
+              $ref: '#/components/schemas/PublicCategoryRef'
+    PublicServiceListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicServiceDetail'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+    ServiceWriteRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+          nullable: true
+        short_description:
+          type: string
+          nullable: true
+        full_description:
+          type: string
+          nullable: true
+        price_from:
+          type: number
+          nullable: true
+        delivery_time:
+          type: string
+          nullable: true
+        category_id:
+          type: integer
+          nullable: true
+        is_active:
+          oneOf:
+            - type: boolean
+            - type: string
+              enum: ['0', '1']
+        call_to_action:
+          type: string
+          nullable: true
+        seo_title:
+          type: string
+          nullable: true
+        seo_description:
+          type: string
+          nullable: true

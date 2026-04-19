@@ -1,0 +1,11 @@
+{
+  "name": "pipeline",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch index.ts"
+  },
+  "dependencies": {
+    "elysia": "latest"
+  }
+}

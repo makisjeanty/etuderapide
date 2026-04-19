@@ -1,0 +1,264 @@
+{
+  "info": {
+    "name": "Etuderapide API v1",
+    "_postman_id": "7b741126-5c32-4cef-8586-8f0b4af4f808",
+    "description": "Collection base para autenticação Sanctum, endpoints públicos e superfície admin em /api/v1.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost" },
+    { "key": "token", "value": "" },
+    { "key": "leadId", "value": "1" },
+    { "key": "postId", "value": "1" },
+    { "key": "projectId", "value": "1" },
+    { "key": "serviceId", "value": "1" },
+    { "key": "tokenId", "value": "1" },
+    { "key": "postSlug", "value": "post-publico" },
+    { "key": "projectSlug", "value": "projeto-publico" },
+    { "key": "serviceSlug", "value": "servico-publico" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\",\n  \"device_name\": \"postman\",\n  \"abilities\": [\"profile:read\", \"dashboard:read\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/login"
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/me"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tokens",
+      "item": [
+        {
+          "name": "List Tokens",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/tokens"
+          }
+        },
+        {
+          "name": "Create Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"reporting-script\",\n  \"abilities\": [\"profile:read\", \"dashboard:read\"]\n}"
+            },
+            "url": "{{baseUrl}}/api/v1/tokens"
+          }
+        },
+        {
+          "name": "Delete Token",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/tokens/{{tokenId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public",
+      "item": [
+        { "name": "List Posts", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/public/posts?per_page=12&search=laravel&tag=laravel" } },
+        { "name": "Show Post", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/public/posts/{{postSlug}}" } },
+        { "name": "List Projects", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/public/projects?per_page=12&is_featured=1" } },
+        { "name": "Show Project", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/public/projects/{{projectSlug}}" } },
+        { "name": "List Services", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/public/services?per_page=12&search=landing" } },
+        { "name": "Show Service", "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/public/services/{{serviceSlug}}" } }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Summary",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/v1/admin/summary"
+          }
+        },
+        {
+          "name": "Leads",
+          "item": [
+            {
+              "name": "List Leads",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+                "url": "{{baseUrl}}/api/v1/admin/leads?per_page=10&status=read&sort_by=quoted_value&sort_direction=desc"
+              }
+            },
+            {
+              "name": "Update Lead",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"replied\",\n  \"internal_notes\": \"Contato realizado\",\n  \"payment_link\": \"https://example.com/pay\",\n  \"quoted_value\": 3500\n}"
+                },
+                "url": "{{baseUrl}}/api/v1/admin/leads/{{leadId}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Posts CRUD",
+          "item": [
+            {
+              "name": "List Posts",
+              "request": {
+                "method": "GET",
+                "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+                "url": "{{baseUrl}}/api/v1/admin/posts?per_page=10&is_published=1&sort_by=published_at&sort_direction=desc"
+              }
+            },
+            {
+              "name": "Create Post",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Post API\",\n  \"body\": \"Conteudo completo\",\n  \"is_published\": true\n}"
+                },
+                "url": "{{baseUrl}}/api/v1/admin/posts"
+              }
+            },
+            {
+              "name": "Update Post",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Post API Atualizado\",\n  \"body\": \"Conteudo atualizado\",\n  \"is_published\": true\n}"
+                },
+                "url": "{{baseUrl}}/api/v1/admin/posts/{{postId}}"
+              }
+            },
+            {
+              "name": "Delete Post",
+              "request": {
+                "method": "DELETE",
+                "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+                "url": "{{baseUrl}}/api/v1/admin/posts/{{postId}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Projects CRUD",
+          "item": [
+            {
+              "name": "Create Project",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Projeto API\",\n  \"summary\": \"Resumo\",\n  \"description\": \"Descricao completa\",\n  \"status\": \"draft\",\n  \"is_featured\": true\n}"
+                },
+                "url": "{{baseUrl}}/api/v1/admin/projects"
+              }
+            },
+            {
+              "name": "Update Project",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Projeto API Atualizado\",\n  \"summary\": \"Resumo atualizado\",\n  \"description\": \"Descricao atualizada\",\n  \"status\": \"published\",\n  \"is_featured\": false\n}"
+                },
+                "url": "{{baseUrl}}/api/v1/admin/projects/{{projectId}}"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Services CRUD",
+          "item": [
+            {
+              "name": "Create Service",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Servico API\",\n  \"short_description\": \"Resumo\",\n  \"full_description\": \"Descricao longa\",\n  \"is_active\": \"1\"\n}"
+                },
+                "url": "{{baseUrl}}/api/v1/admin/services"
+              }
+            },
+            {
+              "name": "Update Service",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Servico API Atualizado\",\n  \"short_description\": \"Resumo atualizado\",\n  \"full_description\": \"Descricao atualizada\",\n  \"is_active\": \"0\"\n}"
+                },
+                "url": "{{baseUrl}}/api/v1/admin/services/{{serviceId}}"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

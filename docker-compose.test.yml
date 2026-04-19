@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  php-test:
+    image: php:8.3-cli
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: >
+      sh -c "
+        docker-php-ext-install pgsql pdo_pgsql > /dev/null 2>&1 || true &&
+        php vendor/bin/phpunit --testdox
+      "
+    depends_on:
+      - postgres
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: etuderapide_test
+      DB_USERNAME: etuderapide
+      DB_PASSWORD: etuderapide2026
+      APP_ENV: testing
+      APP_KEY: base64:bJ+mHsjttoCTJrk8Ru/rlGafsEBZUk01A+SQdbfhRqQ=
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: etuderapide_test
+      POSTGRES_USER: etuderapide
+      POSTGRES_PASSWORD: etuderapide2026
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U etuderapide"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
