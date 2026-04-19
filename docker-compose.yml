@@ -1,0 +1,53 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: etuderapide-app
+    restart: always
+    env_file: .env
+    depends_on:
+      - db
+    networks:
+      - etuderapide-net
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - etuderapide-net
+
+  pipeline:
+    build:
+      context: ./pipeline
+    image: etuderapide-pipeline
+    restart: always
+    networks:
+      - etuderapide-net
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./public:/var/www/public
+    depends_on:
+      - app
+    networks:
+      - etuderapide-net
+
+networks:
+  etuderapide-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
