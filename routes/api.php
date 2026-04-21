@@ -44,12 +44,24 @@ $registerApiRoutes = function (string $namePrefix = 'api.', ?string $versionPref
             ->name('login');
 
         Route::prefix('public')->name('public.')->group(function (): void {
-            Route::get('/posts', PublicPostIndexController::class)->name('posts.index');
-            Route::get('/posts/{slug}', PublicPostShowController::class)->name('posts.show');
-            Route::get('/projects', PublicProjectIndexController::class)->name('projects.index');
-            Route::get('/projects/{slug}', PublicProjectShowController::class)->name('projects.show');
-            Route::get('/services', PublicServiceIndexController::class)->name('services.index');
-            Route::get('/services/{slug}', PublicServiceShowController::class)->name('services.show');
+            Route::get('/posts', PublicPostIndexController::class)
+                ->middleware('throttle:api_public')
+                ->name('posts.index');
+            Route::get('/posts/{slug}', PublicPostShowController::class)
+                ->middleware('throttle:api_public')
+                ->name('posts.show');
+            Route::get('/projects', PublicProjectIndexController::class)
+                ->middleware('throttle:api_public')
+                ->name('projects.index');
+            Route::get('/projects/{slug}', PublicProjectShowController::class)
+                ->middleware('throttle:api_public')
+                ->name('projects.show');
+            Route::get('/services', PublicServiceIndexController::class)
+                ->middleware('throttle:api_public')
+                ->name('services.index');
+            Route::get('/services/{slug}', PublicServiceShowController::class)
+                ->middleware('throttle:api_public')
+                ->name('services.show');
         });
 
         Route::middleware('auth:sanctum')->group(function (): void {

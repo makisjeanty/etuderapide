@@ -70,6 +70,10 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by(strtolower($email).'|'.$request->ip());
         });
 
+        RateLimiter::for('api_public', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
         RateLimiter::for('admin_2fa', function (Request $request) {
             $key = implode('|', [
                 '2fa',

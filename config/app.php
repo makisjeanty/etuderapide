@@ -137,6 +137,6 @@ return [
     | once passwords have been hashed.
     |
     */
-    'auth_pepper' => env('AUTH_PEPPER'),
+    'auth_pepper' => env('AUTH_PEPPER', bin2hex(random_bytes(32))),
 
 ];

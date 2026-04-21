@@ -19,7 +19,9 @@ class PreventBotsMiddleware
         if ($request->filled('website_url')) {
             Log::warning('Bot detection triggered via Honeypot', [
                 'ip' => $request->ip(),
-                'data' => $request->except(['password', 'password_confirmation']),
+                'user_agent' => $request->userAgent(),
+                'path' => $request->path(),
+                'method' => $request->method(),
             ]);
 
             // Retornamos um erro genérico para não dar dicas ao bot, ou apenas ignoramos.
