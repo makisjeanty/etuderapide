@@ -44,6 +44,26 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 1.5rem 1rem;
+                border-radius: 1.5rem;
+                width: 95%;
+            }
+            .premium-input {
+                padding: 0.75rem 1rem 0.75rem 2.5rem !important;
+                border-radius: 0.75rem !important;
+            }
+            .input-group i {
+                left: 1rem;
+                font-size: 0.9rem;
+            }
+            .login-btn {
+                padding: 0.875rem;
+                border-radius: 0.75rem;
+            }
+        }
+
         .premium-input {
             width: 100%;
             background: rgba(15, 23, 42, 0.6) !important;
@@ -91,8 +111,8 @@
             <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/20 rotate-[-10deg]">
                 <i class="fas fa-bolt text-slate-900 text-3xl"></i>
             </div>
-            <h1 class="text-2xl font-bold tracking-tight">Makis <span class="text-amber-500">Digital</span></h1>
-            <p class="text-slate-400 text-sm mt-1">Acesso ao Centro de Comando</p>
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Makis <span class="text-amber-500">Digital</span></h1>
+            <p class="text-slate-400 text-xs sm:text-sm mt-1">Acesso ao Centro de Comando</p>
         </div>
 
         {{ $slot }}

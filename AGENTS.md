@@ -7,19 +7,25 @@
 - PostgreSQL (Docker)
 - Spatie Laravel Permission for RBAC
 - Laravel Sanctum for auth
-- Separate AI pipeline in `pipeline/` (Bun + TypeScript)
+- Separate AI pipeline in `pipeline/` (Bun + Elysia)
 - Blog system: Posts belongTo Category, Posts BelongsToMany Tag
 
-## Developer Commands
+## Critical Commands
 
+**Windows Setup:**
 ```bash
-# Full dev setup (installs deps, generates key, migrates, builds assets)
+# Use start_server.bat, NOT php artisan serve directly
+start_server.bat
+
+# Alternative if needed (XAMPP PHP)
+"C:\xampp\php\php.exe" artisan serve
+```
+
+**Full dev setup:**
+```bash
 composer run setup
 
-# Dev server
-"C:\xampp\php\php.exe" artisan serve
-
-# Database (PostgreSQL Docker)
+# Database setup (PostgreSQL Docker)
 docker start etuderapide-db
 
 # Run migrations
@@ -35,34 +41,34 @@ docker run --rm --network host -v "D:\etuderapide-workspace:C:\app" -w C:\app ph
 cd pipeline && bun run dev
 ```
 
-## PHP Setup
-
-**Este projeto usa XAMPP PHP (PHP 8.2)** para conexão com banco de dados.
-
-Use o PHP do XAMPP para comandos Artisan:
-```bash
-"C:\xampp\php\php.exe" artisan migrate
-"C:\xampp\php\php.exe" artisan tinker
-```
-
 ## PostgreSQL (Docker)
 
 Container: `etuderapide-db`
-- Porta: 5433 (mapeada para 5432)
+- Port: 5433 (mapped to 5432)
 - Database: etuderapide, etuderapide_test
 - User: etuderapide
 - Password: etuderapide2026
 
 ## Architecture
 
-- Admin routes: `/gestao-makis` (configurable via `ADMIN_PREFIX` env)
-- Admin middleware chain: `web` → `auth` → `verified` → `admin` → `two_factor`
-- Custom helpers in `app/helpers.php`: `hash_password()`, `check_password()` (uses `app.auth_pepper`)
-- Models use Spatie Permission: `User` has `Role` and `Permission` via `HasRoles`
-- Blog relations:
+- **Admin routes**: `/gestao-makis` (configurable via `ADMIN_PREFIX` env)
+- **Admin middleware chain**: `web` → `auth` → `verified` → `admin` → `two_factor`
+- **Custom helpers** in `app/helpers.php`: `hash_password()`, `check_password()` (uses `app.auth_pepper`)
+- **Security**: Argon2id password hashing with pepper
+- **Models use Spatie Permission**: `User` has `Role` and `Permission` via `HasRoles`
+- **Blog relations**:
   - `Post` → `category_id` (FK to `categories`)
   - `Post` ⟷ `Tag` (many-to-many via `post_tag` pivot)
   - `Category` → `type` (e.g., 'post', 'project', 'service', 'general')
+- **Business logic**: Uses `Modules\` namespace for complex business logic (PSR-4)
+- **Resilience**: Database failures gracefully degrade with file-based sessions/cache
+
+## Resilience Architecture
+
+The system includes anti-failure measures:
+- `SESSION_DRIVER=file` and `CACHE_STORE=file` ensure site stays online if database fails
+- Controllers wrapped in try-catch blocks gracefully handle database failures
+- Database failures logged with `CRITICAL` priority in `storage/logs/laravel.log`
 
 ## Testing Notes
 
@@ -82,6 +88,13 @@ Container: `etuderapide-db`
 - WhatsApp service (custom)
 - AI Pipeline (Bun server on separate port)
 - PDF generation (barryvdh/laravel-dompdf)
+
+## Environment Variables
+
+- `ADMIN_PREFIX`: Admin routes prefix (default: `gestao-makis`)
+- `LOGIN_PREFIX`: Auth routes prefix (default: `acesso-secreto`)
+- `AUTH_PEPPER`: Security pepper for password hashing
+- `AI_PIPELINE_URL`: URL for AI microservice
 
 ## Blog-Specific Details
 
