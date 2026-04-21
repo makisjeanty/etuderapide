@@ -1,0 +1,16 @@
+name: Deploy to Coolify
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Coolify Deployment
+        run: |
+          curl --request GET \
+            --url "https://painel.etuderapide.com/api/v1/deploy?uuid=blyk4xlx8kvflgn765o63abi" \
+            --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
