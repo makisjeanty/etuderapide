@@ -35,8 +35,8 @@ class SecurityHeaders
 
             // Content Security Policy (Blindagem de Injeção - Nível Produção)
             $csp = "default-src 'self'; ";
-            $csp .= "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://fonts.bunny.net; ";
-            $csp .= "style-src 'self' 'unsafe-inline' https://fonts.bunny.net; ";
+            $csp .= "script-src 'self' https://cdn.jsdelivr.net https://fonts.bunny.net; ";
+            $csp .= "style-src 'self' https://fonts.bunny.net; ";
             $csp .= "font-src 'self' data: https://fonts.bunny.net; ";
             $csp .= "img-src 'self' data: https:; "; // Imagens permitimos de qualquer HTTPS (para banners/mídias)
             $csp .= "connect-src 'self' https:; ";

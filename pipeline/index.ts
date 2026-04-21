@@ -3,7 +3,32 @@ import { Elysia } from "elysia";
 const app = new Elysia()
   .post("/analyze", async ({ body }) => {
     try {
-      const inputData = JSON.stringify(body || {});
+      // Validate and sanitize input - only allow expected fields
+      const allowedFields = ['text', 'command'];
+      const sanitizedBody: Record<string, unknown> = {};
+      
+      if (typeof body === 'object' && body !== null) {
+        for (const [key, value] of Object.entries(body)) {
+          if (allowedFields.includes(key)) {
+            // Sanitize text field to prevent injection
+            if (key === 'text' && typeof value === 'string') {
+              sanitizedBody[key] = value.slice(0, 10000); // Limit length
+            } else if (key === 'command' && typeof value === 'string') {
+              // Whitelist valid commands
+              const validCommands = ['analyze', 'seo_title', 'seo_description', 'summary', 'description', 'cta', 'business_audit'];
+              if (validCommands.includes(value)) {
+                sanitizedBody[key] = value;
+              } else {
+                sanitizedBody[key] = 'analyze';
+              }
+            } else {
+              sanitizedBody[key] = value;
+            }
+          }
+        }
+      }
+      
+      const inputData = JSON.stringify(sanitizedBody);
       
       // Spawn do processo Python
       const proc = Bun.spawn(["python", "python/analyzer.py"], {
