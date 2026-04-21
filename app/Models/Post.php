@@ -27,6 +27,8 @@ class Post extends Model
         'seo_description',
     ];
 
+    protected $withCount = ['tags'];
+
     protected function casts(): array
     {
         return [
@@ -48,5 +50,12 @@ class Post extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true)
+            ->whereNotNull('published_at')
+            ->orderByDesc('published_at');
     }
 }

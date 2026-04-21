@@ -20,14 +20,18 @@ class ProjectController extends Controller
 
     public function index(): View
     {
-        $projects = Project::query()->latest()->paginate(15);
+        $projects = Project::query()
+            ->latest()
+            ->paginate(15);
 
         return view('admin.projects.index', compact('projects'));
     }
 
     public function create(): View
     {
-        $categories = Category::where('type', 'project')->orWhere('type', 'general')->get();
+        $categories = Category::where('type', 'project')
+            ->orWhere('type', 'general')
+            ->get();
 
         return view('admin.projects.create', compact('categories'));
     }
@@ -51,7 +55,9 @@ class ProjectController extends Controller
 
     public function edit(Project $project): View
     {
-        $categories = Category::where('type', 'project')->orWhere('type', 'general')->get();
+        $categories = Category::where('type', 'project')
+            ->orWhere('type', 'general')
+            ->get();
 
         return view('admin.projects.edit', compact('project', 'categories'));
     }

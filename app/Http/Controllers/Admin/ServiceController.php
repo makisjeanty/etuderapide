@@ -19,14 +19,18 @@ class ServiceController extends Controller
 
     public function index(): View
     {
-        $services = Service::query()->latest()->paginate(15);
+        $services = Service::query()
+            ->latest()
+            ->paginate(15);
 
         return view('admin.services.index', compact('services'));
     }
 
     public function create(): View
     {
-        $categories = Category::where('type', 'service')->orWhere('type', 'general')->get();
+        $categories = Category::where('type', 'service')
+            ->orWhere('type', 'general')
+            ->get();
 
         return view('admin.services.create', compact('categories'));
     }
@@ -52,7 +56,9 @@ class ServiceController extends Controller
 
     public function edit(Service $service): View
     {
-        $categories = Category::where('type', 'service')->orWhere('type', 'general')->get();
+        $categories = Category::where('type', 'service')
+            ->orWhere('type', 'general')
+            ->get();
 
         return view('admin.services.edit', compact('service', 'categories'));
     }

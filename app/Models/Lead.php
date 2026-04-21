@@ -27,4 +27,19 @@ class Lead extends Model
             'quoted_value' => 'decimal:2',
         ];
     }
+
+    public function scopeStatus($query, string $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    public function scopeNew($query)
+    {
+        return $query->where('status', 'new');
+    }
+
+    public function scopeRecent($query, int $days = 30)
+    {
+        return $query->where('created_at', '>=', now()->subDays($days));
+    }
 }

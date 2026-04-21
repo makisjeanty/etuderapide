@@ -20,14 +20,18 @@ class PostController extends Controller
 
     public function index(): View
     {
-        $posts = Post::query()->latest()->paginate(15);
+        $posts = Post::query()
+            ->latest()
+            ->paginate(15);
 
         return view('admin.posts.index', compact('posts'));
     }
 
     public function create(): View
     {
-        $categories = Category::where('type', 'post')->orWhere('type', 'general')->get();
+        $categories = Category::where('type', 'post')
+            ->orWhere('type', 'general')
+            ->get();
         $tags = Tag::orderBy('name')->get();
 
         return view('admin.posts.create', compact('categories', 'tags'));
@@ -56,7 +60,9 @@ class PostController extends Controller
 
     public function edit(Post $post): View
     {
-        $categories = Category::where('type', 'post')->orWhere('type', 'general')->get();
+        $categories = Category::where('type', 'post')
+            ->orWhere('type', 'general')
+            ->get();
         $tags = Tag::orderBy('name')->get();
 
         return view('admin.posts.edit', compact('post', 'categories', 'tags'));

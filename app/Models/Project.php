@@ -34,11 +34,6 @@ class Project extends Model
         'seo_description',
     ];
 
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
-    }
-
     protected function casts(): array
     {
         return [
@@ -50,6 +45,11 @@ class Project extends Model
         ];
     }
 
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -58,5 +58,12 @@ class Project extends Model
     public function scopePublished(Builder $query): void
     {
         $query->where('status', ProjectStatus::Published);
+    }
+
+    public function scopeFeatured(Builder $query): Builder
+    {
+        return $query->where('is_featured', true)
+            ->orderByDesc('is_featured')
+            ->latest('updated_at');
     }
 }
