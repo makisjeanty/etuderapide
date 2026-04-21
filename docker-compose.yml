@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile.prod
     image: etuderapide-app
     restart: always
-    env_file: .env
+
     depends_on:
       db:
         condition: service_healthy
