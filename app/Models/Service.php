@@ -52,4 +52,10 @@ class Service extends Model
     {
         $query->where('is_active', true);
     }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('is_active', true)
+            ->orderBy('name');
+    }
 }

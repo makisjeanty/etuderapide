@@ -16,6 +16,16 @@ class DashboardController extends Controller
 {
     public function __invoke(): View
     {
+        // Cache dashboard data for 5 minutes to reduce database load
+        $dashboardData = Cache::remember('admin.dashboard.summary', 300, function () {
+            return $this->getDashboardData();
+        });
+
+        return view('admin.dashboard', ...$dashboardData);
+    }
+
+    protected function getDashboardData(): array
+    {
         // Estatísticas Comerciais
         $totalPipelineValue = Lead::where('status', 'replied')->sum('quoted_value');
         $newLeadsCount = Lead::where('status', 'new')->count();
@@ -62,21 +72,23 @@ class DashboardController extends Controller
             'latest_leads' => $recentLeads,
         ];
 
-        return view('admin.dashboard', compact(
-            'totalPipelineValue',
-            'newLeadsCount',
-            'totalLeadsCount',
-            'leadsHistory',
-            'leadsByStatus',
-            'leadsByInterest',
-            'postsCount',
-            'projectsCount',
-            'servicesCount',
-            'recentLeads',
-            'systemHealth',
-            'health',
-            'business'
-        ));
+        return [
+            compact(
+                'totalPipelineValue',
+                'newLeadsCount',
+                'totalLeadsCount',
+                'leadsHistory',
+                'leadsByStatus',
+                'leadsByInterest',
+                'postsCount',
+                'projectsCount',
+                'servicesCount',
+                'recentLeads',
+                'systemHealth',
+                'health',
+                'business'
+            )
+        ];
     }
 
     protected function calculateConversionRate(): float
