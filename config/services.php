@@ -36,7 +36,7 @@ return [
     ],
 
     'whatsapp' => [
-        'admin_phone' => env('WHATSAPP_ADMIN_PHONE'),
+        'admin_phone' => env('WHATSAPP_ADMIN_PHONE', '551993692512'),
     ],
 
     'ai_pipeline' => [
