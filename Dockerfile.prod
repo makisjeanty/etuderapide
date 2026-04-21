@@ -26,9 +26,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Copy composer files and install PHP deps first (better layer caching)
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+# Copy composer files and install PHP deps
+COPY composer.json ./
+RUN composer update --no-dev --optimize-autoloader --no-scripts --no-interaction --ignore-platform-reqs
 
 # Copy package files and install Node deps + build assets
 COPY package.json package-lock.json ./
