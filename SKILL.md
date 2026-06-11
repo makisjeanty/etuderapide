@@ -228,9 +228,9 @@ CACHE_STORE=file
 
 ### Deploy Changes
 
-- See `docs/deploy-simples.md`, `scripts/deploy-simples.sh`, or `scripts/deploy-optimized.sh`
-- Deploy de produção é via Coolify, disparado pelo GitHub Actions (`.github/workflows/ci.yml`) após CI verde na `main`
-- Docker builds use `Dockerfile.prod`
+- Deploy de produção: VPS HestiaCP via SSH, disparado pelo GitHub Actions (`.github/workflows/ci.yml`) após CI verde na `main` — script `scripts/deploy-hestia.sh`
+- Setup inicial do servidor: `scripts/setup-inicial-hestia.sh`; detalhes em `docs/ci-cd.md`
+- Alternativas Docker (uso local/futuro): `docs/deploy-simples.md`, `scripts/deploy-simples.sh`, `Dockerfile.prod`
 
 ### Add New Permission/Role
 

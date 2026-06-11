@@ -84,7 +84,7 @@ MariaDB 10.4 (MySQL-compatible) on localhost:3306. DB: `etuderapide` / user: `ro
 
 ## CI/CD (GitHub Actions)
 
-Workflow único em `.github/workflows/ci.yml`. Push em `main`/`develop` ou PR para `main` roda o job `quality`: PHPUnit (SQLite in-memory) + Pint + PHPStan (nível 8 + baseline) + Composer audit. Em push na `main`, após `quality` verde, o job `deploy` dispara o webhook do Coolify, que faz build (`Dockerfile.prod`) e deploy. Detalhes em `docs/ci-cd.md`.
+Workflow único em `.github/workflows/ci.yml`. Push em `main`/`develop` ou PR para `main` roda o job `quality`: build do Vite + PHPUnit (SQLite in-memory) + Pint + PHPStan (nível 8 + baseline) + Composer audit. Em push na `main`, após `quality` verde, o job `deploy` conecta via SSH (chave restrita `DEPLOY_SSH_KEY`) no VPS HestiaCP e executa `/home/damil/deploy-etude.sh`. Detalhes em `docs/ci-cd.md`.
 
 ## Production Docker Stack
 

@@ -7,7 +7,7 @@ Plataforma premium em **Laravel 13** (PHP 8.4): site público com blog, serviço
 - **Backend**: Laravel 13, PHP 8.4 · Sanctum (API) · Spatie Permission (RBAC)
 - **Frontend**: Vite + Tailwind CSS 3 + Alpine.js (Blade)
 - **Banco**: MySQL/MariaDB local · PostgreSQL 15 em produção · SQLite nos testes
-- **Infra**: Docker (php-fpm + nginx + supervisor), deploy via Coolify
+- **Infra**: VPS com HestiaCP (nginx + apache + PHP-FPM 8.4), TLS Let's Encrypt, deploy automático via GitHub Actions/SSH
 - **IA**: microserviço de auditoria em `pipeline/` (Bun + Elysia + Python)
 
 ## 🛠️ Setup Rápido
@@ -35,7 +35,7 @@ composer run dev
 | `composer run analyse` | PHPStan nível 8 + baseline (Larastan)      |
 | `composer audit`       | Vulnerabilidades de dependências           |
 
-O CI (`.github/workflows/ci.yml`) roda tudo isso em cada PR; deploy para produção (Coolify) só acontece com a `main` verde. Detalhes em [docs/ci-cd.md](docs/ci-cd.md).
+O CI (`.github/workflows/ci.yml`) roda tudo isso em cada PR; o deploy para produção (VPS HestiaCP via SSH) só acontece com a `main` verde. Detalhes em [docs/ci-cd.md](docs/ci-cd.md).
 
 ## 🛡️ Arquitetura de Resiliência
 
