@@ -58,14 +58,20 @@ jobs:
         run: composer audit
 
   deploy:
-    name: Deploy to Coolify
+    name: Deploy to VPS (HestiaCP)
     needs: quality
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - name: Trigger Coolify Deployment
+      - name: Configure SSH deploy key
         run: |
-          curl --fail --request GET \
-            --url "https://etuderapide.com/api/v1/deploy?uuid=blyk4xlx8kvflgn765o63abi" \
-            --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 195.26.252.210 >> ~/.ssh/known_hosts
+
+      - name: Run deploy script on VPS
+        # A chave é restrita no servidor (command="...") e só executa
+        # /home/damil/deploy-etude.sh, independente do comando enviado.
+        run: ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes damil@195.26.252.210 deploy
