@@ -1,0 +1,14 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 8
+    paths:
+        - app
+        - modules
+        - routes
+        - tests
+    ignoreErrors:
+        - identifier: missingType.iterableValue
+    reportUnmatchedIgnoredErrors: false
