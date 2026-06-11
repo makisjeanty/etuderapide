@@ -21,6 +21,11 @@ class TwoFactorVerification
             return $next($request);
         }
 
+        // Ignora o 2FA em ambiente local para simplificar o desenvolvimento
+        if (app()->environment('local')) {
+            return $next($request);
+        }
+
         // Se a sessão já estiver verificada, segue o fluxo
         if (session('2fa_verified')) {
             return $next($request);

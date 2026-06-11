@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Acesso - Makis Digital</title>
+    <title>{{ $title ? "{$title} - Acesso" : 'Acesso' }}</title>
     
     <!-- Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -95,6 +95,17 @@
             box-shadow: 0 10px 20px var(--primary-glow);
         }
 
+        .footer-link {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: #f8fafc;
+        }
+
         .input-group { position: relative; }
         .input-group i {
             position: absolute;
@@ -111,8 +122,8 @@
             <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/20 rotate-[-10deg]">
                 <i class="fas fa-bolt text-slate-900 text-3xl"></i>
             </div>
-            <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Makis <span class="text-amber-500">Digital</span></h1>
-            <p class="text-slate-400 text-xs sm:text-sm mt-1">Acesso ao Centro de Comando</p>
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight">{{ $title ?? config('app.name', 'Etuderapide') }}</h1>
+            <p class="text-slate-400 text-xs sm:text-sm mt-1">{{ $subtitle ?? 'Acesse sua conta com segurança' }}</p>
         </div>
 
         {{ $slot }}

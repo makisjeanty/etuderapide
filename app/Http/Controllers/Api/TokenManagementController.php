@@ -23,7 +23,17 @@ class TokenManagementController extends Controller
         ]);
 
         $abilities = $this->resolveAbilities($user, $validated['abilities'] ?? null);
-        $token = $user->createToken($validated['name'], $abilities);
+
+        if ($user->canAccessAdminPanel()) {
+            if (! $request->user()->tokenCan('2fa:verified')) {
+                return response()->json([
+                    'error' => 'Forbidden: Two-factor authentication required for token operations',
+                ], 403);
+            }
+            $abilities[] = '2fa:verified';
+        }
+
+        $token = $user->createToken($validated['name'], $abilities, now()->addDays(30));
 
         return response()->json([
             'token' => $token->plainTextToken,

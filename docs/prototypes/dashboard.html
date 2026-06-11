@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Makis Digital — Painel Executivo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --bg-primary: #f1efe9;
+            --bg-card: #ffffff;
+            --bg-header: #141413;
+            --text-primary: #141413;
+            --text-secondary: #5e5d59;
+            --text-on-dark: #faf9f5;
+            --clay: #b85a34;
+            --clay-light: rgba(184,90,52,0.10);
+            --amber: #f59e0b;
+            --positive: #16a34a;
+            --negative: #dc2626;
+            --neutral: #6b7280;
+            --border: rgba(20,20,19,0.10);
+            --gap: 16px;
+            --radius: 12px;
+            --c1: #4C72B0; --c2: #b85a34; --c3: #55A868; --c4: #C44E52; --c5: #8172B3; --c6: #937860;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        .wrap { max-width: 1400px; margin: 0 auto; padding: var(--gap); }
+
+        /* Header */
+        .dash-header {
+            background: var(--bg-header);
+            color: var(--text-on-dark);
+            padding: 18px 24px;
+            border-radius: var(--radius);
+            margin-bottom: var(--gap);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .dash-header-left { display: flex; align-items: center; gap: 12px; }
+        .logo-dot { width: 32px; height: 32px; background: var(--clay); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .logo-dot svg { width: 18px; height: 18px; }
+        .dash-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+        .dash-subtitle { font-size: 12px; color: rgba(250,249,245,0.55); margin-top: 1px; }
+        .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .filter-group { display: flex; align-items: center; gap: 6px; }
+        .filter-group label { font-size: 11px; color: rgba(250,249,245,0.6); white-space: nowrap; }
+        .filter-group select, .filter-group input[type="date"] {
+            padding: 5px 10px; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
+            background: rgba(255,255,255,0.08); color: var(--text-on-dark);
+            font-size: 12px; cursor: pointer; outline: none;
+        }
+        .filter-group select option { background: #141413; color: #faf9f5; }
+        .filter-group select:focus, .filter-group input:focus { border-color: var(--clay); }
+
+        /* KPI row */
+        .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--gap); margin-bottom: var(--gap); }
+        .kpi-card {
+            background: var(--bg-card); border-radius: var(--radius); padding: 18px 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .kpi-icon { font-size: 20px; margin-bottom: 4px; }
+        .kpi-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+        .kpi-value { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); }
+        .kpi-change { font-size: 12px; font-weight: 600; }
+        .kpi-change.pos { color: var(--positive); }
+        .kpi-change.neg { color: var(--negative); }
+        .kpi-change.neu { color: var(--neutral); }
+
+        /* Chart row */
+        .chart-row { display: grid; gap: var(--gap); margin-bottom: var(--gap); }
+        .chart-row-2 { grid-template-columns: 2fr 1fr; }
+        .chart-row-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .chart-box {
+            background: var(--bg-card); border-radius: var(--radius); padding: 20px 22px;
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .chart-box h3 { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .chart-box h3 span { font-size: 11px; font-weight: 500; color: var(--text-secondary); }
+        .chart-box canvas { max-height: 260px; }
+
+        /* Funnel */
+        .funnel { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+        .funnel-row { display: flex; align-items: center; gap: 10px; }
+        .funnel-label { font-size: 12px; width: 72px; color: var(--text-secondary); font-weight: 600; flex-shrink: 0; }
+        .funnel-bar-wrap { flex: 1; height: 28px; background: #f3f4f6; border-radius: 6px; overflow: hidden; }
+        .funnel-bar { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; font-weight: 700; color: white; transition: width 0.4s; }
+        .funnel-count { font-size: 12px; font-weight: 700; width: 36px; text-align: right; color: var(--text-primary); }
+
+        /* Table */
+        .table-box {
+            background: var(--bg-card); border-radius: var(--radius); padding: 20px 22px;
+            border: 1px solid var(--border); margin-bottom: var(--gap);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow-x: auto;
+        }
+        .table-box h3 { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead th {
+            text-align: left; padding: 8px 12px; border-bottom: 2px solid #e5e7eb;
+            color: var(--text-secondary); font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap;
+            cursor: pointer; user-select: none;
+        }
+        thead th:hover { color: var(--text-primary); background: #f9fafb; }
+        tbody td { padding: 9px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+        tbody tr:last-child td { border-bottom: none; }
+        tbody tr:hover { background: #fafafa; }
+        .badge {
+            display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .badge-new    { background: #dbeafe; color: #1d4ed8; }
+        .badge-read   { background: #fef9c3; color: #a16207; }
+        .badge-replied  { background: #dcfce7; color: #166534; }
+        .badge-archived { background: #f3f4f6; color: #6b7280; }
+        .badge-pub    { background: #dcfce7; color: #166534; }
+        .badge-draft  { background: #f3f4f6; color: #6b7280; }
+
+        /* Footer */
+        .dash-footer {
+            text-align: center; font-size: 11px; color: var(--text-secondary);
+            padding: 12px 0 4px;
+        }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; margin-bottom: var(--gap); }
+        .tab {
+            padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+            cursor: pointer; border: 1px solid var(--border); background: var(--bg-card);
+            color: var(--text-secondary); transition: all 0.15s;
+        }
+        .tab.active { background: var(--bg-header); color: var(--text-on-dark); border-color: transparent; }
+        .tab:hover:not(.active) { background: #e8e6dc; color: var(--text-primary); }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* Pill for pipeline */
+        .pipeline-val { font-weight: 700; color: var(--clay); }
+
+        @media (max-width: 900px) {
+            .chart-row-2, .chart-row-3 { grid-template-columns: 1fr; }
+            .kpi-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 500px) {
+            .kpi-row { grid-template-columns: 1fr 1fr; }
+            .dash-header { padding: 14px 16px; }
+        }
+        @media print {
+            body { background: white; }
+            .filters { display: none; }
+            .tabs { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+    <!-- Header -->
+    <header class="dash-header">
+        <div class="dash-header-left">
+            <div class="logo-dot">
+                <svg fill="none" stroke="#faf9f5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            </div>
+            <div>
+                <div class="dash-title">Makis Digital</div>
+                <div class="dash-subtitle">Painel Executivo</div>
+            </div>
+        </div>
+        <div class="filters">
+            <div class="filter-group">
+                <label for="f-period">Período</label>
+                <select id="f-period" onchange="dash.applyFilters()">
+                    <option value="all">Todo período</option>
+                    <option value="30">Últimos 30 dias</option>
+                    <option value="90" selected>Últimos 90 dias</option>
+                    <option value="180">Últimos 180 dias</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-service">Serviço</label>
+                <select id="f-service" onchange="dash.applyFilters()">
+                    <option value="all">Todos</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="f-status">Status lead</label>
+                <select id="f-status" onchange="dash.applyFilters()">
+                    <option value="all">Todos</option>
+                    <option value="new">Novo</option>
+                    <option value="read">Lido</option>
+                    <option value="replied">Respondido</option>
+                    <option value="archived">Arquivado</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('leads')">Leads &amp; Pipeline</div>
+        <div class="tab" onclick="showTab('content')">Conteúdo</div>
+        <div class="tab" onclick="showTab('ops')">Operações</div>
+    </div>
+
+    <!-- TAB: Leads -->
+    <div id="tab-leads" class="tab-panel active">
+        <div class="kpi-row" id="kpi-leads"></div>
+        <div class="chart-row chart-row-2">
+            <div class="chart-box">
+                <h3>Leads por Mês <span>volume mensal</span></h3>
+                <canvas id="chart-leads-month"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Funil de Status <span>distribuição atual</span></h3>
+                <div class="funnel" id="funnel-status"></div>
+            </div>
+        </div>
+        <div class="chart-row chart-row-3">
+            <div class="chart-box">
+                <h3>Interesse por Serviço <span>leads por serviço</span></h3>
+                <canvas id="chart-service-interest"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Pipeline de Valor <span>leads com orçamento</span></h3>
+                <canvas id="chart-pipeline"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Tempo de Resposta <span>média em dias</span></h3>
+                <canvas id="chart-response-time"></canvas>
+            </div>
+        </div>
+        <div class="table-box">
+            <h3>Leads Recentes</h3>
+            <div id="table-leads"></div>
+        </div>
+    </div>
+
+    <!-- TAB: Content -->
+    <div id="tab-content" class="tab-panel">
+        <div class="kpi-row" id="kpi-content"></div>
+        <div class="chart-row chart-row-2">
+            <div class="chart-box">
+                <h3>Posts Publicados por Mês <span>cadência editorial</span></h3>
+                <canvas id="chart-posts-month"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Status do Conteúdo <span>publicado vs. rascunho</span></h3>
+                <canvas id="chart-content-status"></canvas>
+            </div>
+        </div>
+        <div class="chart-row chart-row-2">
+            <div class="chart-box">
+                <h3>Projetos por Status <span>portfólio</span></h3>
+                <canvas id="chart-projects-status"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Serviços Ativos <span>catálogo</span></h3>
+                <canvas id="chart-services"></canvas>
+            </div>
+        </div>
+        <div class="table-box">
+            <h3>Posts Recentes</h3>
+            <div id="table-posts"></div>
+        </div>
+    </div>
+
+    <!-- TAB: Ops -->
+    <div id="tab-ops" class="tab-panel">
+        <div class="kpi-row" id="kpi-ops"></div>
+        <div class="chart-row chart-row-2">
+            <div class="chart-box">
+                <h3>Atividade de Auditoria <span>ações por semana</span></h3>
+                <canvas id="chart-audit"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Ações por Tipo <span>log de auditoria</span></h3>
+                <canvas id="chart-audit-type"></canvas>
+            </div>
+        </div>
+        <div class="table-box">
+            <h3>Log de Auditoria Recente</h3>
+            <div id="table-audit"></div>
+        </div>
+    </div>
+
+    <footer class="dash-footer">
+        ⚠️ Dados de amostra — substitua por consultas reais ao banco de dados &nbsp;·&nbsp;
+        Gerado em <span id="gen-date"></span>
+    </footer>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// SAMPLE DATA  (replace with real DB queries)
+// ─────────────────────────────────────────────
+const LEADS = [
+  {id:1,name:'Bruno Alves',email:'bruno@agencia.com.br',service:'Landing Page IA',status:'replied',quoted_value:3500,created_at:'2026-03-02'},
+  {id:2,name:'Fernanda Lima',email:'fernanda@startup.io',service:'SEO Avançado',status:'replied',quoted_value:2800,created_at:'2026-03-05'},
+  {id:3,name:'Rafael Costa',email:'rafael@ecommerce.com',service:'Loja Virtual',status:'read',quoted_value:6200,created_at:'2026-03-09'},
+  {id:4,name:'Juliana Melo',email:'ju@consultoria.com',service:'Automação IA',status:'new',quoted_value:null,created_at:'2026-03-14'},
+  {id:5,name:'Marcos Pinto',email:'marcos@empresa.com.br',service:'Landing Page IA',status:'replied',quoted_value:2900,created_at:'2026-03-18'},
+  {id:6,name:'Carla Souza',email:'carla@saude.com',service:'SEO Avançado',status:'archived',quoted_value:1800,created_at:'2026-03-20'},
+  {id:7,name:'Diego Ferreira',email:'diego@tech.com',service:'Loja Virtual',status:'new',quoted_value:null,created_at:'2026-03-25'},
+  {id:8,name:'Amanda Torres',email:'amanda@marketing.com.br',service:'Automação IA',status:'replied',quoted_value:4100,created_at:'2026-04-01'},
+  {id:9,name:'Pedro Nunes',email:'pedro@imob.com',service:'Landing Page IA',status:'read',quoted_value:3200,created_at:'2026-04-05'},
+  {id:10,name:'Isabela Ramos',email:'isa@moda.com.br',service:'SEO Avançado',status:'new',quoted_value:null,created_at:'2026-04-08'},
+  {id:11,name:'Tiago Mendes',email:'tiago@edu.com',service:'Loja Virtual',status:'replied',quoted_value:5500,created_at:'2026-04-11'},
+  {id:12,name:'Patrícia Gomes',email:'pat@jur.com.br',service:'Automação IA',status:'new',quoted_value:null,created_at:'2026-04-14'},
+  {id:13,name:'Lucas Barbosa',email:'lucas@fin.com',service:'Landing Page IA',status:'read',quoted_value:2600,created_at:'2026-04-17'},
+  {id:14,name:'Renata Castro',email:'renata@foto.com.br',service:'SEO Avançado',status:'replied',quoted_value:3300,created_at:'2026-04-21'},
+  {id:15,name:'Felipe Moura',email:'felipe@arq.com',service:'Loja Virtual',status:'new',quoted_value:null,created_at:'2026-04-25'},
+  {id:16,name:'Larissa Dias',email:'larissa@rc.com.br',service:'Automação IA',status:'replied',quoted_value:4800,created_at:'2026-04-28'},
+  {id:17,name:'Gustavo Rocha',email:'gus@adv.com.br',service:'Landing Page IA',status:'new',quoted_value:null,created_at:'2026-05-02'},
+  {id:18,name:'Mariana Vieira',email:'mari@ong.org.br',service:'SEO Avançado',status:'read',quoted_value:2200,created_at:'2026-05-06'},
+  {id:19,name:'Alexsandro Lima',email:'alex@ind.com',service:'Loja Virtual',status:'replied',quoted_value:7100,created_at:'2026-05-09'},
+  {id:20,name:'Thais Oliveira',email:'thais@nutri.com.br',service:'Automação IA',status:'new',quoted_value:null,created_at:'2026-05-13'},
+  {id:21,name:'Rodrigo Santos',email:'rodrigo@pet.com',service:'Landing Page IA',status:'replied',quoted_value:3800,created_at:'2026-05-16'},
+  {id:22,name:'Vanessa Carvalho',email:'van@travel.com.br',service:'SEO Avançado',status:'read',quoted_value:2500,created_at:'2026-05-19'},
+  {id:23,name:'Eduardo Faria',email:'edu@construt.com',service:'Loja Virtual',status:'new',quoted_value:null,created_at:'2026-05-22'},
+  {id:24,name:'Priscila Araújo',email:'pri@bel.com.br',service:'Automação IA',status:'replied',quoted_value:4400,created_at:'2026-05-25'},
+  {id:25,name:'Leonardo Cunha',email:'leo@vet.com.br',service:'Landing Page IA',status:'new',quoted_value:null,created_at:'2026-05-28'},
+  {id:26,name:'Bianca Martins',email:'bi@school.com.br',service:'SEO Avançado',status:'replied',quoted_value:3100,created_at:'2026-06-01'},
+  {id:27,name:'Henrique Luz',email:'henrique@seg.com',service:'Loja Virtual',status:'read',quoted_value:5800,created_at:'2026-06-03'},
+  {id:28,name:'Simone Batista',email:'simone@med.com.br',service:'Automação IA',status:'new',quoted_value:null,created_at:'2026-06-05'},
+  {id:29,name:'Vitor Correia',email:'vitor@sport.com',service:'Landing Page IA',status:'replied',quoted_value:4200,created_at:'2026-06-07'},
+  {id:30,name:'Natalia Campos',email:'nat@food.com.br',service:'SEO Avançado',status:'new',quoted_value:null,created_at:'2026-06-09'},
+];
+
+const POSTS = [
+  {id:1,title:'Como usar IA para gerar leads qualificados em 2026',is_published:true,published_at:'2026-03-03',category:'Marketing Digital',author:'Makis Dev'},
+  {id:2,title:'SEO Técnico: os 10 pontos que derrubam seu ranking',is_published:true,published_at:'2026-03-10',category:'SEO',author:'Makis Dev'},
+  {id:3,title:'Landing pages que convertem: anatomia de uma página perfeita',is_published:true,published_at:'2026-03-18',category:'Design',author:'Makis Dev'},
+  {id:4,title:'Automação de WhatsApp: guia completo para PMEs',is_published:true,published_at:'2026-03-26',category:'Automação',author:'Makis Dev'},
+  {id:5,title:'Google Analytics 4: métricas que realmente importam',is_published:true,published_at:'2026-04-03',category:'Analytics',author:'Makis Dev'},
+  {id:6,title:'Como montar um funil de vendas B2B com IA',is_published:true,published_at:'2026-04-11',category:'Marketing Digital',author:'Makis Dev'},
+  {id:7,title:'E-commerce: checklist de lançamento para 2026',is_published:true,published_at:'2026-04-20',category:'E-commerce',author:'Makis Dev'},
+  {id:8,title:'Copywriting com IA: prompts avançados para vendas',is_published:true,published_at:'2026-04-28',category:'Copywriting',author:'Makis Dev'},
+  {id:9,title:'Tendências de UX/UI para o segundo semestre',is_published:false,published_at:null,category:'Design',author:'Makis Dev'},
+  {id:10,title:'Core Web Vitals: como melhorar a performance do seu site',is_published:true,published_at:'2026-05-07',category:'SEO',author:'Makis Dev'},
+  {id:11,title:'Redes sociais orgânicas vs. pagas em 2026',is_published:false,published_at:null,category:'Marketing Digital',author:'Makis Dev'},
+  {id:12,title:'Automação de email: sequências que vendem enquanto você dorme',is_published:true,published_at:'2026-05-15',category:'Automação',author:'Makis Dev'},
+  {id:13,title:'Como criar um blog corporativo que gera leads',is_published:true,published_at:'2026-05-22',category:'Conteúdo',author:'Makis Dev'},
+  {id:14,title:'Inteligência Artificial no atendimento ao cliente',is_published:false,published_at:null,category:'Automação',author:'Makis Dev'},
+  {id:15,title:'Guia definitivo de link building para 2026',is_published:true,published_at:'2026-06-02',category:'SEO',author:'Makis Dev'},
+];
+
+const PROJECTS = [
+  {id:1,title:'Redesign Site Clínica Saúde Plena',client:'Clínica Saúde Plena',status:'completed',value:8500,category:'Web Design'},
+  {id:2,title:'Loja Virtual Moda Urbana',client:'Moda Urbana LTDA',status:'completed',value:12000,category:'E-commerce'},
+  {id:3,title:'Sistema de Agendamento Online',client:'Pet Love Vet',status:'completed',value:6800,category:'Sistema'},
+  {id:4,title:'Campanha SEO Construtora Sol',client:'Construtora Sol',status:'completed',value:9200,category:'SEO'},
+  {id:5,title:'Automação de Leads Escola Tech',client:'Escola Tech',status:'in_progress',value:7500,category:'Automação'},
+  {id:6,title:'Landing Page Produto SaaS',client:'SoftwareX',status:'in_progress',value:4200,category:'Web Design'},
+  {id:7,title:'Estratégia de Conteúdo 6 Meses',client:'Advogados Associados',status:'pending',value:5400,category:'Conteúdo'},
+];
+
+const AUDIT_LOGS = [
+  {id:1,user:'Makis Dev',action:'lead.updated',description:'Status alterado para "replied"',created_at:'2026-06-09 14:32'},
+  {id:2,user:'Makis Dev',action:'post.published',description:'Post "Guia de Link Building" publicado',created_at:'2026-06-08 10:15'},
+  {id:3,user:'Makis Dev',action:'lead.archived',description:'Lead #6 arquivado',created_at:'2026-06-07 16:44'},
+  {id:4,user:'Admin',action:'user.login',description:'Login bem-sucedido de 192.168.1.1',created_at:'2026-06-07 09:00'},
+  {id:5,user:'Makis Dev',action:'project.updated',description:'Projeto "Escola Tech" atualizado',created_at:'2026-06-06 15:20'},
+  {id:6,user:'Makis Dev',action:'service.created',description:'Novo serviço "Tráfego Pago" criado',created_at:'2026-06-05 11:05'},
+  {id:7,user:'Admin',action:'user.login',description:'Login bem-sucedido de 192.168.1.1',created_at:'2026-06-04 08:55'},
+  {id:8,user:'Makis Dev',action:'lead.updated',description:'Orçamento adicionado ao lead #27',created_at:'2026-06-03 17:10'},
+  {id:9,user:'Makis Dev',action:'post.draft_saved',description:'Rascunho "Tendências UX/UI" salvo',created_at:'2026-06-02 13:30'},
+  {id:10,user:'Admin',action:'settings.updated',description:'Configurações de e-mail atualizadas',created_at:'2026-06-01 10:00'},
+];
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+const COLORS = ['#4C72B0','#b85a34','#55A868','#C44E52','#8172B3','#937860','#f59e0b','#06b6d4'];
+
+function fmtCurrency(v) {
+    if (v === null || v === undefined) return '—';
+    if (v >= 1e6) return `R$${(v/1e6).toFixed(1)}M`;
+    if (v >= 1e3) return `R$${(v/1e3).toFixed(1)}K`;
+    return `R$${v.toLocaleString('pt-BR')}`;
+}
+function fmtNum(v) {
+    if (v >= 1e3) return (v/1e3).toFixed(1)+'K';
+    return v.toLocaleString('pt-BR');
+}
+function fmtPct(v) { return v.toFixed(1)+'%'; }
+function daysSince(dateStr) {
+    return Math.floor((new Date() - new Date(dateStr)) / 86400000);
+}
+function daysAgo(n) {
+    const d = new Date(); d.setDate(d.getDate() - n); return d.toISOString().slice(0,10);
+}
+function monthKey(dateStr) { return dateStr.slice(0,7); }
+function monthLabel(key) {
+    const [y,m] = key.split('-');
+    return ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][+m-1] + ' ' + y.slice(2);
+}
+function sortBy(arr, field, dir='desc') {
+    return [...arr].sort((a,b) => {
+        const av = a[field] ?? '', bv = b[field] ?? '';
+        return dir==='asc' ? (av>bv?1:av<bv?-1:0) : (av<bv?1:av>bv?-1:0);
+    });
+}
+
+// Chart registry
+const CHARTS = {};
+function makeChart(id, type, data, options) {
+    if (CHARTS[id]) CHARTS[id].destroy();
+    const ctx = document.getElementById(id)?.getContext('2d');
+    if (!ctx) return;
+    CHARTS[id] = new Chart(ctx, { type, data, options });
+    return CHARTS[id];
+}
+
+// ─────────────────────────────────────────────
+// DASHBOARD CLASS
+// ─────────────────────────────────────────────
+class Dashboard {
+    constructor() {
+        this.allLeads = LEADS;
+        this.leads = LEADS;
+        this.init();
+    }
+
+    init() {
+        this.populateFilters();
+        this.applyFilters();
+        this.renderContent();
+        this.renderOps();
+        document.getElementById('gen-date').textContent = new Date().toLocaleDateString('pt-BR');
+    }
+
+    populateFilters() {
+        const sel = document.getElementById('f-service');
+        const services = [...new Set(LEADS.map(l => l.service))].sort();
+        services.forEach(s => {
+            const o = document.createElement('option');
+            o.value = s; o.textContent = s;
+            sel.appendChild(o);
+        });
+    }
+
+    applyFilters() {
+        const period = document.getElementById('f-period').value;
+        const service = document.getElementById('f-service').value;
+        const status = document.getElementById('f-status').value;
+        const cutoff = period === 'all' ? null : daysAgo(+period);
+
+        this.leads = this.allLeads.filter(l => {
+            if (cutoff && l.created_at < cutoff) return false;
+            if (service !== 'all' && l.service !== service) return false;
+            if (status !== 'all' && l.status !== status) return false;
+            return true;
+        });
+
+        this.renderLeads();
+    }
+
+    // ── LEADS TAB ──
+    renderLeads() {
+        const leads = this.leads;
+        const total = leads.length;
+        const allLeads = this.allLeads;
+
+        // KPIs
+        const replied = leads.filter(l => l.status === 'replied').length;
+        const convRate = total > 0 ? (replied / total * 100) : 0;
+        const pipeline = leads.reduce((s, l) => s + (l.quoted_value || 0), 0);
+        const newLeads = leads.filter(l => l.status === 'new').length;
+
+        // vs prior period for comparison (simple: all vs filtered)
+        const convRateAll = allLeads.length > 0 ? (allLeads.filter(l=>l.status==='replied').length / allLeads.length * 100) : 0;
+
+        const kpiEl = document.getElementById('kpi-leads');
+        kpiEl.innerHTML = `
+            <div class="kpi-card">
+                <div class="kpi-label">Total de Leads</div>
+                <div class="kpi-value">${fmtNum(total)}</div>
+                <div class="kpi-change neu">${allLeads.length} total geral</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Leads Novos</div>
+                <div class="kpi-value">${newLeads}</div>
+                <div class="kpi-change ${newLeads>5?'pos':'neu'}">${fmtPct(total>0?newLeads/total*100:0)} aguardando</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Taxa de Conversão</div>
+                <div class="kpi-value">${fmtPct(convRate)}</div>
+                <div class="kpi-change ${convRate>=convRateAll?'pos':'neg'}">${replied} respondidos</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Pipeline Orçado</div>
+                <div class="kpi-value">${fmtCurrency(pipeline)}</div>
+                <div class="kpi-change pos">${leads.filter(l=>l.quoted_value).length} leads com valor</div>
+            </div>`;
+
+        this.renderLeadsCharts(leads);
+        this.renderLeadsTable(leads);
+    }
+
+    renderLeadsCharts(leads) {
+        // Monthly volume bar
+        const months = {};
+        leads.forEach(l => {
+            const k = monthKey(l.created_at);
+            months[k] = (months[k]||0) + 1;
+        });
+        const mKeys = Object.keys(months).sort();
+        makeChart('chart-leads-month', 'bar', {
+            labels: mKeys.map(monthLabel),
+            datasets: [{
+                label: 'Leads',
+                data: mKeys.map(k => months[k]),
+                backgroundColor: COLORS[0]+'BB',
+                borderColor: COLORS[0],
+                borderWidth: 1,
+                borderRadius: 6,
+            }]
+        }, {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        });
+
+        // Status funnel
+        const statusOrder = ['new','read','replied','archived'];
+        const statusLabel = { new:'Novo', read:'Lido', replied:'Respondido', archived:'Arquivado' };
+        const statusColor = { new:'#4C72B0', read:'#f59e0b', replied:'#16a34a', archived:'#9ca3af' };
+        const statusCounts = {};
+        statusOrder.forEach(s => statusCounts[s] = leads.filter(l=>l.status===s).length);
+        const maxCount = Math.max(...Object.values(statusCounts), 1);
+        const funnelEl = document.getElementById('funnel-status');
+        funnelEl.innerHTML = statusOrder.map(s => {
+            const count = statusCounts[s];
+            const pct = Math.round(count/maxCount*100);
+            return `<div class="funnel-row">
+                <span class="funnel-label">${statusLabel[s]}</span>
+                <div class="funnel-bar-wrap">
+                    <div class="funnel-bar" style="width:${Math.max(pct,4)}%;background:${statusColor[s]}">${count>0?count:''}</div>
+                </div>
+                <span class="funnel-count">${count}</span>
+            </div>`;
+        }).join('');
+
+        // Service interest doughnut
+        const svc = {};
+        leads.forEach(l => svc[l.service] = (svc[l.service]||0)+1);
+        const svcKeys = Object.keys(svc).sort((a,b)=>svc[b]-svc[a]);
+        makeChart('chart-service-interest', 'doughnut', {
+            labels: svcKeys,
+            datasets: [{ data: svcKeys.map(k=>svc[k]), backgroundColor: COLORS.map(c=>c+'CC'), borderColor:'#fff', borderWidth:2 }]
+        }, {
+            responsive: true, maintainAspectRatio: false, cutout:'55%',
+            plugins: { legend: { position:'bottom', labels:{ usePointStyle:true, padding:10, font:{size:11} } } }
+        });
+
+        // Pipeline bar by service
+        const pipelineSvc = {};
+        leads.filter(l=>l.quoted_value).forEach(l => pipelineSvc[l.service] = (pipelineSvc[l.service]||0) + l.quoted_value);
+        const pSvcKeys = Object.keys(pipelineSvc).sort((a,b)=>pipelineSvc[b]-pipelineSvc[a]);
+        makeChart('chart-pipeline', 'bar', {
+            labels: pSvcKeys,
+            datasets: [{
+                label: 'Valor orçado',
+                data: pSvcKeys.map(k=>pipelineSvc[k]),
+                backgroundColor: COLORS.map(c=>c+'BB'),
+                borderRadius: 6,
+            }]
+        }, {
+            responsive: true, maintainAspectRatio: false, indexAxis:'y',
+            plugins: { legend:{ display:false }, tooltip:{ callbacks:{ label: c=>'  '+fmtCurrency(c.parsed.x) } } },
+            scales: { x:{ ticks:{ callback: v=>fmtCurrency(v) } }, y:{ grid:{ display:false } } }
+        });
+
+        // Response time (synthetic: days between created_at and now for replied leads)
+        const responseTimes = { new:[], read:[], replied:[], archived:[] };
+        leads.forEach(l => {
+            const d = daysSince(l.created_at);
+            responseTimes[l.status].push(d);
+        });
+        const avgRT = {};
+        Object.entries(responseTimes).forEach(([s,arr]) => {
+            avgRT[s] = arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : 0;
+        });
+        const rtLabels = ['Novo','Lido','Respondido','Arquivado'];
+        makeChart('chart-response-time', 'bar', {
+            labels: rtLabels,
+            datasets: [{
+                label: 'Média de dias',
+                data: [avgRT.new, avgRT.read, avgRT.replied, avgRT.archived],
+                backgroundColor: ['#4C72B0BB','#f59e0bBB','#16a34aBB','#9ca3afBB'],
+                borderRadius: 6,
+            }]
+        }, {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend:{ display:false } },
+            scales: { x:{ grid:{ display:false } }, y:{ beginAtZero:true, ticks:{ callback: v=>v+'d' } } }
+        });
+    }
+
+    renderLeadsTable(leads) {
+        const sorted = sortBy(leads, 'created_at', 'desc').slice(0,10);
+        const statusBadge = s => `<span class="badge badge-${s}">${{new:'Novo',read:'Lido',replied:'Respondido',archived:'Arquivado'}[s]}</span>`;
+        let html = `<table><thead><tr>
+            <th>#</th><th>Nome</th><th>Serviço</th><th>Status</th><th>Orçamento</th><th>Data</th>
+        </tr></thead><tbody>`;
+        sorted.forEach(l => {
+            html += `<tr>
+                <td>${l.id}</td>
+                <td><strong>${l.name}</strong><br><span style="color:#6b7280;font-size:11px">${l.email}</span></td>
+                <td>${l.service}</td>
+                <td>${statusBadge(l.status)}</td>
+                <td class="pipeline-val">${fmtCurrency(l.quoted_value)}</td>
+                <td>${l.created_at}</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        document.getElementById('table-leads').innerHTML = html;
+    }
+
+    // ── CONTENT TAB ──
+    renderContent() {
+        const posts = POSTS;
+        const published = posts.filter(p=>p.is_published).length;
+        const drafts = posts.filter(p=>!p.is_published).length;
+        const projects = PROJECTS;
+        const completedProj = projects.filter(p=>p.status==='completed').length;
+        const totalProjValue = projects.reduce((s,p)=>s+p.value,0);
+
+        document.getElementById('kpi-content').innerHTML = `
+            <div class="kpi-card">
+                <div class="kpi-label">Posts Publicados</div>
+                <div class="kpi-value">${published}</div>
+                <div class="kpi-change pos">de ${posts.length} total</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Rascunhos</div>
+                <div class="kpi-value">${drafts}</div>
+                <div class="kpi-change ${drafts>0?'neg':'pos'}">${fmtPct(posts.length>0?drafts/posts.length*100:0)} do total</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Projetos</div>
+                <div class="kpi-value">${projects.length}</div>
+                <div class="kpi-change pos">${completedProj} concluídos</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Valor de Projetos</div>
+                <div class="kpi-value">${fmtCurrency(totalProjValue)}</div>
+                <div class="kpi-change pos">portfólio total</div>
+            </div>`;
+
+        // Posts per month
+        const pmMonths = {};
+        posts.filter(p=>p.is_published).forEach(p => {
+            const k = monthKey(p.published_at);
+            pmMonths[k] = (pmMonths[k]||0)+1;
+        });
+        const pmKeys = Object.keys(pmMonths).sort();
+        makeChart('chart-posts-month', 'line', {
+            labels: pmKeys.map(monthLabel),
+            datasets: [{
+                label: 'Posts publicados',
+                data: pmKeys.map(k=>pmMonths[k]),
+                borderColor: COLORS[0],
+                backgroundColor: COLORS[0]+'22',
+                fill: true, tension: 0.3, borderWidth: 2, pointRadius: 4,
+            }]
+        }, {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend:{ display:false } },
+            scales: { x:{ grid:{ display:false } }, y:{ beginAtZero:true, ticks:{ stepSize:1 } } }
+        });
+
+        // Published vs draft doughnut
+        makeChart('chart-content-status', 'doughnut', {
+            labels: ['Publicado','Rascunho'],
+            datasets: [{ data:[published, drafts], backgroundColor:['#55A868CC','#9ca3afCC'], borderColor:'#fff', borderWidth:2 }]
+        }, {
+            responsive: true, maintainAspectRatio: false, cutout:'60%',
+            plugins: { legend:{ position:'bottom' } }
+        });
+
+        // Projects by status
+        const projStatus = {};
+        projects.forEach(p => projStatus[p.status] = (projStatus[p.status]||0)+1);
+        const psKeys = Object.keys(projStatus);
+        const psLabel = { completed:'Concluído', in_progress:'Em progresso', pending:'Pendente' };
+        makeChart('chart-projects-status', 'doughnut', {
+            labels: psKeys.map(k=>psLabel[k]||k),
+            datasets: [{ data:psKeys.map(k=>projStatus[k]), backgroundColor:['#55A868CC','#f59e0bCC','#9ca3afCC'], borderColor:'#fff', borderWidth:2 }]
+        }, {
+            responsive: true, maintainAspectRatio: false, cutout:'55%',
+            plugins: { legend:{ position:'bottom' } }
+        });
+
+        // Services bar (categories from posts as proxy for service content)
+        const cats = {};
+        posts.forEach(p => cats[p.category] = (cats[p.category]||0)+1);
+        const catKeys = Object.keys(cats).sort((a,b)=>cats[b]-cats[a]);
+        makeChart('chart-services', 'bar', {
+            labels: catKeys,
+            datasets: [{
+                label: 'Posts por categoria',
+                data: catKeys.map(k=>cats[k]),
+                backgroundColor: COLORS.map(c=>c+'BB'),
+                borderRadius: 5,
+            }]
+        }, {
+            responsive: true, maintainAspectRatio: false, indexAxis:'y',
+            plugins: { legend:{ display:false } },
+            scales: { x:{ beginAtZero:true, ticks:{ stepSize:1 } }, y:{ grid:{ display:false } } }
+        });
+
+        // Posts table
+        const sortedPosts = sortBy(posts, 'published_at', 'desc');
+        const badge = p => p.is_published ? '<span class="badge badge-pub">Publicado</span>' : '<span class="badge badge-draft">Rascunho</span>';
+        let html = `<table><thead><tr><th>#</th><th>Título</th><th>Categoria</th><th>Autor</th><th>Status</th><th>Data</th></tr></thead><tbody>`;
+        sortedPosts.forEach(p => {
+            html += `<tr>
+                <td>${p.id}</td>
+                <td><strong>${p.title}</strong></td>
+                <td>${p.category}</td>
+                <td>${p.author}</td>
+                <td>${badge(p)}</td>
+                <td>${p.published_at||'—'}</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        document.getElementById('table-posts').innerHTML = html;
+    }
+
+    // ── OPS TAB ──
+    renderOps() {
+        const logs = AUDIT_LOGS;
+        const users = [...new Set(LEADS.map(l=>l.service))].length; // services as proxy
+        const adminActions = logs.length;
+
+        document.getElementById('kpi-ops').innerHTML = `
+            <div class="kpi-card">
+                <div class="kpi-label">Ações de Auditoria</div>
+                <div class="kpi-value">${adminActions}</div>
+                <div class="kpi-change neu">últimas registradas</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Serviços no Catálogo</div>
+                <div class="kpi-value">4</div>
+                <div class="kpi-change pos">Landing Page, SEO, Loja, Automação</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Usuários Admin</div>
+                <div class="kpi-value">2</div>
+                <div class="kpi-change neu">Makis Dev · Admin</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Último Login</div>
+                <div class="kpi-value" style="font-size:18px">2026-06-07</div>
+                <div class="kpi-change pos">autenticado com 2FA</div>
+            </div>`;
+
+        // Audit by week (synthetic)
+        const weekLabels = ['Sem 1 Mai','Sem 2 Mai','Sem 3 Mai','Sem 4 Mai','Sem 1 Jun','Sem 2 Jun'];
+        const weekData = [3,5,4,6,7,5];
+        makeChart('chart-audit', 'line', {
+            labels: weekLabels,
+            datasets: [{
+                label: 'Ações',
+                data: weekData,
+                borderColor: COLORS[0],
+                backgroundColor: COLORS[0]+'22',
+                fill: true, tension: 0.3, borderWidth: 2, pointRadius: 4,
+            }]
+        }, {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend:{ display:false } },
+            scales: { x:{ grid:{ display:false } }, y:{ beginAtZero:true, ticks:{ stepSize:1 } } }
+        });
+
+        // Audit by action type
+        const actionTypes = {};
+        logs.forEach(l => {
+            const type = l.action.split('.')[0];
+            actionTypes[type] = (actionTypes[type]||0)+1;
+        });
+        const atKeys = Object.keys(actionTypes);
+        makeChart('chart-audit-type', 'doughnut', {
+            labels: atKeys.map(k => k.charAt(0).toUpperCase()+k.slice(1)),
+            datasets: [{ data: atKeys.map(k=>actionTypes[k]), backgroundColor: COLORS.map(c=>c+'CC'), borderColor:'#fff', borderWidth:2 }]
+        }, {
+            responsive: true, maintainAspectRatio: false, cutout:'55%',
+            plugins: { legend:{ position:'bottom' } }
+        });
+
+        // Audit table
+        let html = `<table><thead><tr><th>#</th><th>Usuário</th><th>Ação</th><th>Descrição</th><th>Data/Hora</th></tr></thead><tbody>`;
+        logs.forEach(l => {
+            const [entity, act] = l.action.split('.');
+            const actionColor = { login:'#4C72B0', updated:'#f59e0b', published:'#16a34a', archived:'#6b7280', created:'#8172B3', draft_saved:'#937860' };
+            const badgeColor = actionColor[act] || '#6b7280';
+            html += `<tr>
+                <td>${l.id}</td>
+                <td><strong>${l.user}</strong></td>
+                <td><span class="badge" style="background:${badgeColor}22;color:${badgeColor}">${l.action}</span></td>
+                <td>${l.description}</td>
+                <td>${l.created_at}</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+        document.getElementById('table-audit').innerHTML = html;
+    }
+}
+
+// ─────────────────────────────────────────────
+// TAB SWITCHING
+// ─────────────────────────────────────────────
+function showTab(name) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    const idx = ['leads','content','ops'].indexOf(name);
+    document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+
+// ─────────────────────────────────────────────
+// BOOT
+// ─────────────────────────────────────────────
+const dash = new Dashboard();
+</script>
+</body>
+</html>

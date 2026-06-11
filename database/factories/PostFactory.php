@@ -22,7 +22,7 @@ class PostFactory extends Factory
         $category = Category::query()->whereIn('type', ['post', 'general'])->first() ?? Category::factory()->state(['type' => 'post'])->create();
 
         return [
-            'author_id' => $user->id,
+            'user_id' => $user->id,
             'category_id' => $category->id,
             'title' => $title,
             'slug' => Str::slug($title).'-'.$this->faker->unique()->numerify('####'),

@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\TwoFactorCodeMail;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
@@ -19,6 +22,7 @@ class TokenController extends Controller
             'device_name' => ['nullable', 'string', 'max:255'],
             'abilities' => ['nullable', 'array'],
             'abilities.*' => ['string'],
+            'code' => ['nullable', 'string', 'size:6'],
         ]);
 
         $throttleKey = strtolower($validated['email']).'|'.$request->ip();
@@ -44,11 +48,46 @@ class TokenController extends Controller
 
         RateLimiter::clear($throttleKey);
 
+        // 2FA check for privileged users
+        if ($user->canAccessAdminPanel()) {
+            $code = $request->input('code');
+
+            if (! $code) {
+                // Generate and send 2FA code
+                $this->generateAndSendCode($user);
+
+                return response()->json([
+                    'error' => 'Two-factor authentication required',
+                    '2fa_required' => true,
+                ], 403);
+            }
+
+            $storedCode = $user->twoFactorCodes()
+                ->where('expires_at', '>', now())
+                ->first();
+
+            if (! $storedCode || ! Hash::check($code, $storedCode->code)) {
+                return response()->json([
+                    'error' => 'Invalid or expired two-factor code',
+                    '2fa_required' => true,
+                ], 403);
+            }
+
+            // Success - delete the used code
+            $storedCode->delete();
+        }
+
         $abilities = $this->resolveAbilities($user, $validated['abilities'] ?? null);
+
+        // Append 2fa:verified for privileged users who successfully verified
+        if ($user->canAccessAdminPanel()) {
+            $abilities[] = '2fa:verified';
+        }
 
         $token = $user->createToken(
             $validated['device_name'] ?: 'api-token',
-            $abilities
+            $abilities,
+            now()->addDays(30)
         );
 
         return response()->json([
@@ -63,6 +102,20 @@ class TokenController extends Controller
                 'email_verified' => $user->hasVerifiedEmail(),
             ],
         ]);
+    }
+
+    protected function generateAndSendCode(User $user): void
+    {
+        $user->twoFactorCodes()->delete();
+
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $user->twoFactorCodes()->create([
+            'code' => Hash::make($code),
+            'expires_at' => now()->addMinutes(10),
+        ]);
+
+        Mail::to($user->email)->send(new TwoFactorCodeMail($code));
     }
 
     public function destroy(Request $request): JsonResponse

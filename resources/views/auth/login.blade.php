@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-guest-layout :title="config('app.name', 'Etuderapide')" subtitle="Área do usuário">
     @if (session('status'))
         <div class="mb-4 font-medium text-sm text-green-400">
             {{ session('status') }}
@@ -10,30 +10,34 @@
 
         <!-- Email Address -->
         <div class="input-group">
-            <input id="email" 
-                   class="premium-input" 
-                   type="email" 
-                   name="email" 
+            <label for="email" class="sr-only">E-mail</label>
+            <input id="email"
+                   class="premium-input"
+                   type="email"
+                   name="email"
                    placeholder="Seu e-mail"
-                   value="{{ old('email') }}" 
-                   required autofocus autocomplete="username" />
-            <i class="fas fa-envelope"></i>
+                   value="{{ old('email') }}"
+                   required autofocus autocomplete="username"
+                   @error('email') aria-describedby="email-error" aria-invalid="true" @enderror />
+            <i class="fas fa-envelope" aria-hidden="true"></i>
             @error('email')
-                <p class="mt-2 text-red-400 text-xs">{{ $message }}</p>
+                <p id="email-error" class="mt-2 text-red-400 text-xs" role="alert">{{ $message }}</p>
             @enderror
         </div>
 
         <!-- Password -->
         <div class="input-group mt-4">
-            <input id="password" 
+            <label for="password" class="sr-only">Senha</label>
+            <input id="password"
                    class="premium-input"
                    type="password"
                    name="password"
                    placeholder="Sua senha secreta"
-                   required autocomplete="current-password" />
-            <i class="fas fa-lock"></i>
+                   required autocomplete="current-password"
+                   @error('password') aria-describedby="password-error" aria-invalid="true" @enderror />
+            <i class="fas fa-lock" aria-hidden="true"></i>
             @error('password')
-                <p class="mt-2 text-red-400 text-xs">{{ $message }}</p>
+                <p id="password-error" class="mt-2 text-red-400 text-xs" role="alert">{{ $message }}</p>
             @enderror
         </div>
 
@@ -52,7 +56,13 @@
         </div>
 
         <button type="submit" class="login-btn">
-            Acessar Sistema <i class="fas fa-arrow-right ml-2"></i>
+            Entrar <i class="fas fa-arrow-right ml-2" aria-hidden="true"></i>
         </button>
+
+        <div class="mt-6 text-center">
+            <a class="footer-link" href="{{ route('admin.login') }}">
+                Acesso administrativo
+            </a>
+        </div>
     </form>
 </x-guest-layout>

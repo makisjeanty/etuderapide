@@ -17,8 +17,14 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
-    Route::get(config('app.login_prefix', 'acesso-secreto'), [AuthenticatedSessionController::class, 'create'])
+    Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
+
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:5,1');
+
+    Route::get(config('app.login_prefix', 'acesso-secreto'), [AuthenticatedSessionController::class, 'createAdmin'])
+        ->name('admin.login');
 
     Route::post(config('app.login_prefix', 'acesso-secreto'), [AuthenticatedSessionController::class, 'store'])
         ->middleware('throttle:5,1');

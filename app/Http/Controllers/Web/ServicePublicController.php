@@ -13,6 +13,7 @@ class ServicePublicController extends Controller
     {
         try {
             $services = Service::query()
+                ->with('category')
                 ->where('is_active', true)
                 ->orderBy('name')
                 ->paginate(12);
@@ -28,6 +29,7 @@ class ServicePublicController extends Controller
     {
         try {
             $service = Service::query()
+                ->with('category')
                 ->where('slug', $slug)
                 ->where('is_active', true)
                 ->firstOrFail();

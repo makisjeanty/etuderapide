@@ -4,6 +4,7 @@ namespace Tests\Feature\Api;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -38,6 +39,104 @@ class AuthTokenTest extends TestCase
             ->assertJsonPath('data.email', 'api@example.com')
             ->assertJsonPath('data.email_verified', true)
             ->assertJsonPath('data.abilities.0', 'profile:read');
+    }
+
+    public function test_api_login_sets_token_expiration(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'api@example.com',
+            'email_verified_at' => now(),
+        ]);
+
+        $loginResponse = $this->postJson(route('api.login'), [
+            'email' => 'api@example.com',
+            'password' => 'password',
+            'device_name' => 'phpunit',
+            'abilities' => ['profile:read'],
+        ]);
+
+        $loginResponse->assertOk();
+
+        $token = PersonalAccessToken::findToken($loginResponse->json('token'));
+
+        $this->assertNotNull($token);
+        $this->assertNotNull($token->expires_at);
+        $this->assertTrue($token->expires_at->isFuture());
+    }
+
+    public function test_admin_api_route_requires_specific_route_name_ability(): void
+    {
+        $admin = User::factory()->admin()->create([
+            'email_verified_at' => now(),
+        ]);
+
+        $token = $admin->createToken('admin-token', ['profile:read', 'dashboard:read', '2fa:verified']);
+
+        $this->withHeader('Authorization', 'Bearer '.$token->plainTextToken)
+            ->getJson(route('api.admin.posts.index'))
+            ->assertForbidden();
+
+        $this->withHeader('Authorization', 'Bearer '.$token->plainTextToken)
+            ->getJson(route('api.admin.summary'))
+            ->assertOk();
+    }
+
+    public function test_admin_login_requires_two_factor_authentication(): void
+    {
+        $admin = User::factory()->admin()->create([
+            'email_verified_at' => now(),
+        ]);
+
+        $this->postJson(route('api.login'), [
+            'email' => $admin->email,
+            'password' => 'password',
+            'device_name' => 'phpunit',
+        ])->assertStatus(403)
+            ->assertJsonPath('2fa_required', true)
+            ->assertJsonPath('error', 'Two-factor authentication required');
+    }
+
+    public function test_v1_admin_route_requires_specific_route_name_ability(): void
+    {
+        $admin = User::factory()->admin()->create([
+            'email_verified_at' => now(),
+        ]);
+
+        $token = $admin->createToken('admin-token', ['profile:read', 'dashboard:read', '2fa:verified']);
+
+        $this->withHeader('Authorization', 'Bearer '.$token->plainTextToken)
+            ->getJson(route('api.v1.admin.posts.index'))
+            ->assertForbidden();
+
+        $this->withHeader('Authorization', 'Bearer '.$token->plainTextToken)
+            ->getJson(route('api.v1.admin.summary'))
+            ->assertOk();
+    }
+
+    public function test_token_management_created_token_has_expiration(): void
+    {
+        $user = User::factory()->admin()->create([
+            'email_verified_at' => now(),
+        ]);
+
+        $current = $user->createToken('current-device', array_merge($user->apiAbilities(), ['2fa:verified']));
+
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']), 'sanctum');
+        $user->withAccessToken($current->accessToken);
+
+        $response = $this->postJson(route('api.tokens.store'), [
+            'name' => 'reporting-script',
+            'abilities' => ['profile:read'],
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.name', 'reporting-script');
+
+        $token = PersonalAccessToken::find($response->json('data.id'));
+
+        $this->assertNotNull($token);
+        $this->assertNotNull($token->expires_at);
+        $this->assertTrue($token->expires_at->isFuture());
     }
 
     public function test_api_login_rejects_invalid_credentials(): void
@@ -101,9 +200,9 @@ class AuthTokenTest extends TestCase
             'email_verified_at' => now(),
         ]);
 
-        $current = $user->createToken('current-device', $user->apiAbilities());
+        $current = $user->createToken('current-device', array_merge($user->apiAbilities(), ['2fa:verified']));
 
-        Sanctum::actingAs($user, $user->apiAbilities(), 'sanctum');
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']), 'sanctum');
         $user->withAccessToken($current->accessToken);
 
         $this->postJson(route('api.tokens.store'), [

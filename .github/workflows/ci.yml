@@ -1,16 +1,71 @@
-name: Deploy to Coolify
+name: CI & Deploy
 
 on:
   push:
-    branches:
-      - main
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
 
 jobs:
-  deploy:
+  quality:
+    name: Tests & Quality
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, xml, ctype, iconv, fileinfo, pdo_sqlite, sqlite3, dom, filter, gd, curl, openssl
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Build frontend assets (Vite)
+        run: |
+          npm ci --ignore-scripts
+          npm run build
+
+      - name: Run tests (PHPUnit, SQLite in-memory)
+        run: vendor/bin/phpunit --no-coverage
+
+      - name: Code style (Laravel Pint)
+        run: vendor/bin/pint --test
+
+      - name: Static analysis (PHPStan level 8 + baseline)
+        run: vendor/bin/phpstan analyse --memory-limit=2G --no-progress
+
+      - name: Dependency vulnerability audit
+        run: composer audit
+
+  deploy:
+    name: Deploy to Coolify
+    needs: quality
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
     steps:
       - name: Trigger Coolify Deployment
         run: |
-          curl --request GET \
-            --url "https://painel.etuderapide.com/api/v1/deploy?uuid=blyk4xlx8kvflgn765o63abi" \
+          curl --fail --request GET \
+            --url "https://etuderapide.com/api/v1/deploy?uuid=blyk4xlx8kvflgn765o63abi" \
             --header "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"

@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\StoreServiceRequest;
+use App\Http\Resources\ServiceResource;
 use App\Models\Service;
 use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
 
-class ServiceStoreController extends Controller
+class ServiceStoreController extends BaseApiController
 {
     public function __invoke(StoreServiceRequest $request): JsonResponse
     {
@@ -34,10 +35,6 @@ class ServiceStoreController extends Controller
             ], $request);
         }
 
-        return response()->json([
-            'data' => ServiceIndexController::serializeService($service) + [
-                'full_description' => $service->full_description,
-            ],
-        ], 201);
+        return $this->respondWithResource($service, ServiceResource::class, 201);
     }
 }

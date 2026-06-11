@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\Public\ProjectShowController as PublicProjectShowCo
 use App\Http\Controllers\Api\Public\ServiceIndexController as PublicServiceIndexController;
 use App\Http\Controllers\Api\Public\ServiceShowController as PublicServiceShowController;
 use App\Http\Controllers\Api\TokenManagementController;
+use App\Http\Middleware\ApiAdminSecurity;
 use Illuminate\Support\Facades\Route;
 
 $registerApiRoutes = function (string $namePrefix = 'api.', ?string $versionPrefix = null): void {
@@ -71,7 +72,7 @@ $registerApiRoutes = function (string $namePrefix = 'api.', ?string $versionPref
             Route::get('/tokens', [TokenManagementController::class, 'index'])->name('tokens.index');
             Route::delete('/tokens/{token}', [TokenManagementController::class, 'destroy'])->name('tokens.destroy');
 
-            Route::prefix('admin')->name('admin.')->group(function (): void {
+            Route::prefix('admin')->name('admin.')->middleware(ApiAdminSecurity::class)->group(function (): void {
                 Route::get('/summary', DashboardSummaryController::class)->name('summary');
 
                 Route::get('/leads', LeadIndexController::class)->name('leads.index');

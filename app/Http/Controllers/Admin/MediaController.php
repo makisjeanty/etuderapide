@@ -25,7 +25,7 @@ class MediaController extends Controller
             $file = $request->file('file');
 
             // Gerar nome único e imprevisível (UUID)
-            $extension = $file->getClientOriginalExtension();
+            $extension = $file->extension();
             $filename = (string) Str::uuid().'.'.$extension;
 
             // Armazenar no disco público

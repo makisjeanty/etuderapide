@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
+use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class ProjectShowController extends Controller
+class ProjectShowController extends BaseApiController
 {
     public function __invoke(Request $request, Project $project): JsonResponse
     {
@@ -18,10 +19,6 @@ class ProjectShowController extends Controller
 
         $project->loadMissing(['category:id,name,slug,type', 'author:id,name,email']);
 
-        return response()->json([
-            'data' => ProjectIndexController::serializeProject($project) + [
-                'description' => $project->description,
-            ],
-        ]);
+        return $this->respondWithResource($project, ProjectResource::class);
     }
 }

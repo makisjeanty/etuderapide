@@ -1,2 +1,2 @@
 @echo off
-php -c "%~dp0php.ini" artisan %*
+"C:\php-8.4\php.exe" -c "%~dp0php.ini" artisan %*

@@ -27,4 +27,31 @@ class Lead extends Model
             'quoted_value' => 'decimal:2',
         ];
     }
+
+    public function scopeFilterByStatus($query, ?string $status)
+    {
+        return $query->when($status, fn ($builder) => $builder->where('status', $status));
+    }
+
+    public function scopeFilterByServiceInterest($query, ?string $interest)
+    {
+        return $query->when($interest, fn ($builder) => $builder->where('service_interest', $interest));
+    }
+
+    public function scopeFilterBySearch($query, ?string $search)
+    {
+        return $query->when($search, function ($builder) use ($search) {
+            $term = '%'.$search.'%';
+            $builder->where(function ($nested) use ($term) {
+                $nested->where('name', 'like', $term)
+                    ->orWhere('email', 'like', $term);
+            });
+        });
+    }
+
+    public function scopeFilterByDateRange($query, ?string $from, ?string $to)
+    {
+        return $query->when($from, fn ($builder) => $builder->whereDate('created_at', '>=', $from))
+            ->when($to, fn ($builder) => $builder->whereDate('created_at', '<=', $to));
+    }
 }

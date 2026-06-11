@@ -16,6 +16,7 @@ venv/
 .env
 .env.local
 .env.*
+!.env.example
 
 # Logs and temp files
 *.log
@@ -23,9 +24,11 @@ venv/
 *.swp
 *.swo
 
-# Editors
+# Editors / AI assistants (local)
 .vscode/
 .idea/
+.claude/
+.phpunit.result.cache
 *.swp
 *.swo
 

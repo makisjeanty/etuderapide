@@ -27,10 +27,14 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        // Se for admin, redireciona para o dashboard admin (que agora tem 2FA)
-        // Se for usuário comum, redireciona para a home ou dashboard comum.
-        // O Laravel costuma redirecionar para '/' ou '/dashboard' por padrão.
-        $response->assertRedirect();
+        $response->assertRedirect(route('profile.edit'));
+    }
+
+    public function test_admin_login_screen_can_be_rendered(): void
+    {
+        $response = $this->get(route('admin.login'));
+
+        $response->assertStatus(200);
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

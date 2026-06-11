@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
+use App\Http\Resources\ServiceResource;
 use App\Models\Service;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class ServiceShowController extends Controller
+class ServiceShowController extends BaseApiController
 {
     public function __invoke(Request $request, Service $service): JsonResponse
     {
@@ -18,10 +19,6 @@ class ServiceShowController extends Controller
 
         $service->loadMissing(['category:id,name,slug,type', 'author:id,name,email']);
 
-        return response()->json([
-            'data' => ServiceIndexController::serializeService($service) + [
-                'full_description' => $service->full_description,
-            ],
-        ]);
+        return $this->respondWithResource($service, ServiceResource::class);
     }
 }

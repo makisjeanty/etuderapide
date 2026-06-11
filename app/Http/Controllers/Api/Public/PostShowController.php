@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Api\Public;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 
-class PostShowController extends Controller
+class PostShowController extends BaseApiController
 {
     public function __invoke(string $slug): JsonResponse
     {
@@ -16,31 +17,6 @@ class PostShowController extends Controller
             ->where('is_published', true)
             ->firstOrFail();
 
-        return response()->json([
-            'data' => [
-                'id' => $post->id,
-                'title' => $post->title,
-                'slug' => $post->slug,
-                'body' => $post->body,
-                'published_at' => $post->published_at?->toIso8601String(),
-                'featured_image' => $post->featured_image,
-                'seo_title' => $post->seo_title,
-                'seo_description' => $post->seo_description,
-                'category' => $post->category ? [
-                    'id' => $post->category->id,
-                    'name' => $post->category->name,
-                    'slug' => $post->category->slug,
-                ] : null,
-                'author' => $post->author ? [
-                    'id' => $post->author->id,
-                    'name' => $post->author->name,
-                ] : null,
-                'tags' => $post->tags->map(fn ($tag) => [
-                    'id' => $tag->id,
-                    'name' => $tag->name,
-                    'slug' => $tag->slug,
-                ])->values()->all(),
-            ],
-        ]);
+        return $this->respondWithResource($post, PostResource::class);
     }
 }

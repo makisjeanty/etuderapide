@@ -1,113 +1,109 @@
-# AGENTS.md - Etuderapide Workspace
+# AGENTS.md — Etuderapide Workspace
 
 ## Stack
 
-- Laravel 13 + PHP 8.3
-- Vite + Tailwind CSS 3 + AlpineJS (not a full SPA)
-- PostgreSQL (Docker)
-- Spatie Laravel Permission for RBAC
-- Laravel Sanctum for auth
-- Separate AI pipeline in `pipeline/` (Bun + Elysia)
-- Blog system: Posts belongTo Category, Posts BelongsToMany Tag
+Laravel 13 + PHP 8.3, MySQL (MariaDB 10.4 local), Vite + Tailwind 3 + AlpineJS, Spatie Permission (RBAC), Sanctum (auth). Separate AI pipeline in `pipeline/` (Bun + Elysia + Python). Locale `pt_BR`, timezone `America/Sao_Paulo`.
 
 ## Critical Commands
 
-**Windows Setup:**
 ```bash
-# Use start_server.bat, NOT php artisan serve directly
+# Windows — always use this, NOT php artisan serve
 start_server.bat
 
-# Alternative if needed (XAMPP PHP)
-"C:\xampp\php\php.exe" artisan serve
-```
+# Full dev environment (server + queue + vite + AI pipeline + logs)
+composer run dev
 
-**Full dev setup:**
-```bash
+# Full install: composer install → .env → key:generate → migrate → npm install → build
 composer run setup
 
-# Database setup (PostgreSQL Docker)
-docker start etuderapide-db
+# Tests: local with SQLite in-memory
+composer run test
 
-# Run migrations
-"C:\xampp\php\php.exe" artisan migrate
+# Tests: full with PostgreSQL via Docker (two options)
+docker compose -f docker-compose.test.yml up --abort-on-container-exit
+# Alternative (standalone, adjust path to your workspace):
+docker run --rm --network host -v "${PWD}:C:\app" -w C:\app php:8.3-cli php vendor/bin/phpunit
 
-# Tests (Docker with PHP 8.3 + PostgreSQL)
-docker run --rm --network host -v "D:\etuderapide-workspace:C:\app" -w C:\app php:8.3-cli php vendor/bin/phpunit
-
-# Linter (Pint)
+# Lint / format (Pint, PSR-12)
 ./vendor/bin/pint
 
-# AI Pipeline (separate from main app)
-cd pipeline && bun run dev
+# Static analysis (Larastan/PHPStan level 8 + baseline; instalado em require-dev)
+composer run analyse   # = vendor/bin/phpstan analyse --memory-limit=2G
+
+# Shortcuts available in repo root
+pa.bat         # -> C:\php-8.4\php.exe -c php.ini artisan
+php.bat        # -> C:\php-8.4\php.exe -c php.ini
+composer.bat   # -> php -c php.ini C:\ProgramData\ComposerSetup\bin\composer.phar
 ```
 
-## PostgreSQL (Docker)
+## Database (MySQL Local)
 
-Container: `etuderapide-db`
-- Port: 5433 (mapped to 5432)
-- Database: etuderapide, etuderapide_test
-- User: etuderapide
-- Password: etuderapide2026
+MariaDB 10.4 (MySQL-compatible) on localhost:3306. DB: `etuderapide` / user: `root` / password: (empty).
+
+## Seeds & Custom Commands
+
+- **`RoleSeeder`** creates 3 roles (`admin`, `editor`, `user`) + 6 permissions. Required for CI and fresh DBs. Run via `php artisan db:seed --class=RoleSeeder`.
+- **`ProductionSeeder`**, **`ProfessionalContentSeeder`**, **`DatabaseSeeder`** available for richer data.
+- Custom Artisan: `php artisan makis:backup` (DB dump + uploads), `php artisan app:sync-admin-roles` (sync `is_admin` flag → Spatie `admin` role).
+
+## Environment Quirks
+
+- `.npmrc` sets `ignore-scripts=true` — npm lifecycle scripts never run. `npm install --ignore-scripts` is intentional.
+- `AUTH_PEPPER` default is `bin2hex(random_bytes(32))` — regenerates every time env is unset. Every `.env` needs an explicit `AUTH_PEPPER`.
+- `SESSION_DRIVER=file`, `CACHE_STORE=file`: site stays online even if DB is down. Controllers must catch `QueryException` and log with `CRITICAL`.
+- Local `.env` uses `QUEUE_CONNECTION=sync` (jobs run synchronously, no worker needed). `.env.example` defaults to `database` — don't copy blindly.
+- Repo root `php.ini` sets `date.timezone`, enables pdo_mysql/pdo_sqlite/sqlite3/mbstring/fileinfo/gd/openssl/curl. Required by `pa.bat`, `php.bat`, `composer.bat` and `start_server.bat` (pdo_sqlite é necessário para os testes).
+- PHP 8.4 is at `C:\php-8.4\php.exe` with extensions in `C:\php-8.4\ext`. The `php.ini` references this path.
 
 ## Architecture
 
-- **Admin routes**: `/gestao-makis` (configurable via `ADMIN_PREFIX` env)
-- **Admin middleware chain**: `web` → `auth` → `verified` → `admin` → `two_factor`
-- **Custom helpers** in `app/helpers.php`: `hash_password()`, `check_password()` (uses `app.auth_pepper`)
-- **Security**: Argon2id password hashing with pepper
-- **Models use Spatie Permission**: `User` has `Role` and `Permission` via `HasRoles`
-- **Blog relations**:
-  - `Post` → `category_id` (FK to `categories`)
-  - `Post` ⟷ `Tag` (many-to-many via `post_tag` pivot)
-  - `Category` → `type` (e.g., 'post', 'project', 'service', 'general')
-- **Business logic**: Uses `Modules\` namespace for complex business logic (PSR-4)
-- **Resilience**: Database failures gracefully degrade with file-based sessions/cache
+- **Admin routes**: `/{ADMIN_PREFIX}` (default: `gestao-makis`). Middleware: `web → auth → verified → admin → two_factor`. Defined in `routes/admin.php`.
+- **Auth routes**: `/` (default) for public login, `/{LOGIN_PREFIX}` (default: `acesso-secreto`) for admin login. Defined in `routes/auth.php`.
+- **API routes** (`routes/api.php`): dual-registration — both unversioned (`api.*`) and versioned (`api.v1.*`, prefix `v1`). Public and Sanctum-authenticated endpoints. Admin API under `/api/{v1/}admin/*`.
+- **Custom helpers** (`app/helpers.php`): `hash_password()`, `check_password()` — append pepper from `config('app.auth_pepper')`, then delegate to Laravel's `Hash::make()`/`Hash::check()` (Argon2id).
+- **Business logic**: `Modules\` namespace → `modules/` dir (PSR-4). Most subdirectories are stub/`gitkeep` — check before assuming code exists.
+- **Blog**: `Post` belongsTo `Category`, `Post` belongsToMany `Tag` (pivot `post_tag`). `Category.type` filters content type (`post`, `project`, `service`, `general`).
+- **`app/Models/User.php`**: `isAdmin()` checks `is_admin=1` flag **OR** Spatie admin role.
 
-## Resilience Architecture
+## Security
 
-The system includes anti-failure measures:
-- `SESSION_DRIVER=file` and `CACHE_STORE=file` ensure site stays online if database fails
-- Controllers wrapped in try-catch blocks gracefully handle database failures
-- Database failures logged with `CRITICAL` priority in `storage/logs/laravel.log`
+- **Admin 2FA (web)**: `TwoFactorVerification` middleware enforces 2FA for the admin panel.
+- **Admin 2FA (API)**: `TokenController` exige código 2FA por e-mail para usuários privilegiados antes de emitir token; o token recebe a ability `2fa:verified`.
+- **Token ability enforcement**: middleware `ApiAdminSecurity` exige `2fa:verified` + ability por recurso (`leads:manage`, `posts:manage`, etc.) em todas as rotas admin da API.
+- **Token expiry**: tokens emitidos com validade de 30 dias.
+- **Password hashing**: Argon2id + pepper via `hash_password()`/`check_password()`.
+- **Bot protection**: `PreventBotsMiddleware` uses honeypot field `website_url`.
+- **Media upload**: nome de arquivo é UUID e a extensão é derivada do MIME real do conteúdo (`$file->extension()`), nunca do cliente.
 
-## Testing Notes
+## Middleware Aliases
 
-- Tests use PostgreSQL (requires pgsql extension)
-- Use Docker to run tests: `docker run --rm --network host -v "D:\etuderapide-workspace:C:\app" -w C:\app php:8.3-cli php vendor/bin/phpunit`
-- APP_KEY is hardcoded in `phpunit.xml` for test stability
-- Email/notification drivers set to `array` (log)
+- `admin` → `EnsureUserIsAdmin` (checks `canAccessAdminPanel()`, logs denial)
+- `two_factor` → `TwoFactorVerification` (session `2fa_verified` flag)
+- `bot_protection` → `PreventBotsMiddleware`
+- Global: `SecurityHeaders` (CSP, HSTS, etc.) appended to every route
 
-## Important Middleware
+## CI/CD (GitHub Actions)
 
-- `admin`: Ensures user has is_admin=1 or admin role
-- `two_factor`: Enforces 2FA requirement
-- `bot_protection`: Bot detection
+Workflow único em `.github/workflows/ci.yml`. Push em `main`/`develop` ou PR para `main` roda o job `quality`: PHPUnit (SQLite in-memory) + Pint + PHPStan (nível 8 + baseline) + Composer audit. Em push na `main`, após `quality` verde, o job `deploy` dispara o webhook do Coolify, que faz build (`Dockerfile.prod`) e deploy. Detalhes em `docs/ci-cd.md`.
 
-## External Integrations (check .env)
+## Production Docker Stack
 
-- WhatsApp service (custom)
-- AI Pipeline (Bun server on separate port)
-- PDF generation (barryvdh/laravel-dompdf)
+Five services (`docker-compose.yml`): `app` (php-fpm 8.3) + `db` (PostgreSQL 15) + `pipeline` (Bun) + `redis` (7) + `nginx`. Entrypoint runs `migrate --force`, `config:cache`, `route:cache`, `view:cache`.
 
-## Environment Variables
+## Known Issues / Gaps
 
-- `ADMIN_PREFIX`: Admin routes prefix (default: `gestao-makis`)
-- `LOGIN_PREFIX`: Auth routes prefix (default: `acesso-secreto`)
-- `AUTH_PEPPER`: Security pepper for password hashing
-- `AI_PIPELINE_URL`: URL for AI microservice
+- **Modules dir** is mostly stubs — verify actual code before assuming module exists
+- **PHPStan baseline** (`phpstan-baseline.neon`) registra 233 erros pré-existentes para correção gradual — não adicione novos
 
-## Blog-Specific Details
+## AI Pipeline
 
-- Public routes: `/blog` (index), `/blog/{slug}` (show)
-- Admin routes under `/gestao-makis`: `posts`, `categories`, `tags` (via resource controllers)
-- Post validation:
-  - Slug auto-generated from title if empty
-  - Published posts require `published_at` (defaults to now)
-  - SEO fields: `seo_title`, `seo_description` (optional)
-- Admin PostController:
-  - Lists all posts (latest first)
-  - Create/Edit shows categories filtered by type 'post' or 'general'
-  - Audit logging via `App\Services\AuditLogger`
-- Migration notes:
-  - `2026_04_18_134438_create_tags_table` adds `name`, `slug` (unique), `description`
-  - `2026_04_18_134453_create_post_tag_table` pivot with foreign keys and unique composite index
+Separate service: `pipeline/` (Elysia/Bun server on port 3001). POST `/analyze` validates input, spawns `python/analyzer.py`. Configured via `AI_PIPELINE_URL` env. If Python is not on the PATH, set `PYTHON_BIN` before starting the pipeline. Run locally with `cd pipeline && bun run dev`.
+
+## Reference Docs (in repo)
+
+- `SKILL.md` — comprehensive workspace reference
+- `CONTRIBUTING.md` — coding standards, git workflow, API format
+- `docs/ci-cd.md` — pipeline de CI/CD e deploy (Coolify)
+- `docs/deploy-simples.md` — deploy manual via Docker Compose
+- `docs/security/security-best-practices-report.md` — relatório de segurança (achados já corrigidos)
+- `docs/history/` — relatórios históricos de análise e implementação

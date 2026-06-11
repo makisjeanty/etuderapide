@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\UpdatePostRequest;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
 
-class PostUpdateController extends Controller
+class PostUpdateController extends BaseApiController
 {
     public function __invoke(UpdatePostRequest $request, Post $post): JsonResponse
     {
@@ -28,10 +29,6 @@ class PostUpdateController extends Controller
             'title' => $post->title,
         ], $request);
 
-        return response()->json([
-            'data' => PostIndexController::serializePost($post) + [
-                'body' => $post->body,
-            ],
-        ]);
+        return $this->respondWithResource($post, PostResource::class);
     }
 }

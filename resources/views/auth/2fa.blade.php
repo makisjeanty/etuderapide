@@ -1,4 +1,4 @@
-<x-guest-layout>
+<x-guest-layout title="Makis Digital" subtitle="Validação administrativa em duas etapas">
     <div class="mb-4 text-sm text-gray-600">
         {{ __('Este é um acesso administrativo seguro. Por favor, insira o código de 6 dígitos enviado para seu e-mail para continuar.') }}
     </div>

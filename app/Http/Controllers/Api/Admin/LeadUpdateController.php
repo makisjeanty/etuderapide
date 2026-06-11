@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\UpdateLeadRequest;
+use App\Http\Resources\LeadResource;
 use App\Models\Lead;
 use Illuminate\Http\JsonResponse;
 
-class LeadUpdateController extends Controller
+class LeadUpdateController extends BaseApiController
 {
     public function __invoke(UpdateLeadRequest $request, Lead $lead): JsonResponse
     {
@@ -15,15 +16,6 @@ class LeadUpdateController extends Controller
 
         $lead->update($request->validated());
 
-        return response()->json([
-            'data' => [
-                'id' => $lead->id,
-                'status' => $lead->status,
-                'internal_notes' => $lead->internal_notes,
-                'payment_link' => $lead->payment_link,
-                'quoted_value' => $lead->quoted_value,
-                'updated_at' => $lead->updated_at?->toIso8601String(),
-            ],
-        ]);
+        return $this->respondWithResource($lead, LeadResource::class);
     }
 }
