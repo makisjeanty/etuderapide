@@ -5,18 +5,37 @@ services:
       dockerfile: Dockerfile.prod
     image: etuderapide-app
     restart: always
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      AI_PIPELINE_URL: http://pipeline:3001
 
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      pipeline:
+        condition: service_started
     networks:
       - etuderapide-net
+    volumes:
+      - public_data:/var/www/public
+      - storage_data:/var/www/storage
 
   db:
     image: postgres:15-alpine
     restart: always
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_USER: ${DB_USERNAME}
@@ -36,6 +55,8 @@ services:
       context: ./pipeline
     image: etuderapide-pipeline
     restart: always
+    env_file:
+      - .env
     networks:
       - etuderapide-net
 
@@ -55,9 +76,11 @@ services:
     restart: always
     ports:
       - "80:80"
+
     volumes:
       - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./public:/var/www/public:ro
+      - public_data:/var/www/public:ro
+      - storage_data:/var/www/storage:ro
     depends_on:
       - app
     networks:
@@ -69,3 +92,5 @@ networks:
 
 volumes:
   postgres_data:
+  public_data:
+  storage_data:
