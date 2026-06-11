@@ -1,2 +1,2 @@
 @echo off
-"C:\xampp\php\php.exe" -d error_reporting=E_ALL ^& ~E_DEPRECATED %*
+"C:\php-8.4\php.exe" -c "%~dp0php.ini" %*

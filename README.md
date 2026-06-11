@@ -1,46 +1,73 @@
-# Makis Digital - Plataforma de Negócios 🚀
+# Makis Digital — Plataforma de Negócios 🚀
 
-Plataforma premium desenvolvida em Laravel **11/13**, focada em alta performance, conversão de leads e **resiliência industrial**.
+Plataforma premium em **Laravel 13** (PHP 8.4): site público com blog, serviços, projetos e captura de leads, painel administrativo com 2FA e API REST versionada — com foco em alta performance, conversão e **resiliência industrial**.
 
-## 🛡️ Arquitetura de Resiliência (Anticorpos do Sistema)
+## 🧰 Stack
 
-Para evitar que falhas técnicas (como queda de banco de dados ou erro de drivers) derrubem o site para o cliente final, o sistema utiliza as seguintes travas:
-
-1.  **Independência do Banco de Dados**: 
-    *   `SESSION_DRIVER=file` e `CACHE_STORE=file` garantem que o "coração" do site inicie mesmo se o MySQL falhar.
-2.  **Blindagem de Controllers**:
-    *   Consultas dinâmicas (projetos, depoimentos, blog) são protegidas por blocos `try-catch`. Caso o banco não responda, o site exibe o conteúdo estático e oculta graciosamente os dados dinâmicos, mantendo o site online.
-3.  **Monitoramento Crítico**: 
-    *   Falhas de banco de dados são logadas com prioridade `CRITICAL` em `storage/logs/laravel.log`.
-
-## ⚙️ Operação e Inicialização (Windows)
-
-Para evitar erros de carregamento de extensões (como `could not find driver`), utilize sempre o script de inicialização customizado:
-
-- **Iniciar Servidor**: Execute o arquivo `start_server.bat` na raiz do projeto. 
-  - *Este script configura automaticamente o `PHPRC` e o `PATH` para garantir que o driver `pdo_mysql` seja carregado corretamente.*
-- **Auditoria IA**: Certifique-se de que o microserviço em `pipeline/` esteja ativo para o funcionamento do Auditor de Negócios.
-
-## 🔒 Segurança Avançada
-
-O sistema segue os padrões "Ouro" de segurança:
-- **Senhas**: Utiliza **Argon2id** com **Pepper** centralizado no `config/app.php`.
-- **Cabeçalhos HTTP**: Middleware `SecurityHeaders` ativo com **CSP (Content Security Policy)** robusta para proteção contra XSS e injeção de scripts.
-- **Admin Boundary**: Acesso restrito via `/gestao-makis` apenas para usuários com flag `is_admin` e e-mail verificado.
+- **Backend**: Laravel 13, PHP 8.4 · Sanctum (API) · Spatie Permission (RBAC)
+- **Frontend**: Vite + Tailwind CSS 3 + Alpine.js (Blade)
+- **Banco**: MySQL/MariaDB local · PostgreSQL 15 em produção · SQLite nos testes
+- **Infra**: Docker (php-fpm + nginx + supervisor), deploy via Coolify
+- **IA**: microserviço de auditoria em `pipeline/` (Bun + Elysia + Python)
 
 ## 🛠️ Setup Rápido
 
 ```bash
-composer install
-npm install
-php artisan key:generate
-php artisan migrate --seed
-npm run build
-start_server.bat
+composer run setup   # install + .env + key + migrate + npm install + build
+start_server.bat     # Windows: inicia o servidor com o php.ini correto
 ```
 
-## 📂 Estrutura de Domínios
-O projeto utiliza o padrão PSR-4 sob o namespace `Modules\` para lógica de negócio complexa, mantendo os controladores Laravel focados apenas no fluxo de requisição.
+Ambiente completo de desenvolvimento (server + queue + vite + pipeline IA + logs):
+
+```bash
+composer run dev
+```
+
+> **Windows**: use sempre `start_server.bat` / `php.bat` / `pa.bat` / `composer.bat` —
+> eles carregam o `php.ini` do repositório com as extensões necessárias (pdo_mysql, pdo_sqlite, …).
+
+## ✅ Qualidade
+
+| Comando                | O que faz                                  |
+| ---------------------- | ------------------------------------------ |
+| `composer run test`    | PHPUnit (SQLite in-memory)                 |
+| `composer run lint`    | Laravel Pint (PSR-12)                      |
+| `composer run analyse` | PHPStan nível 8 + baseline (Larastan)      |
+| `composer audit`       | Vulnerabilidades de dependências           |
+
+O CI (`.github/workflows/ci.yml`) roda tudo isso em cada PR; deploy para produção (Coolify) só acontece com a `main` verde. Detalhes em [docs/ci-cd.md](docs/ci-cd.md).
+
+## 🛡️ Arquitetura de Resiliência
+
+1. **Independência do banco**: `SESSION_DRIVER=file` e `CACHE_STORE=file` — o site sobe mesmo com o MySQL fora.
+2. **Blindagem de controllers**: consultas dinâmicas protegidas por `try-catch`; com o banco fora, o site exibe conteúdo estático e segue no ar.
+3. **Monitoramento**: falhas de banco logadas como `CRITICAL` em `storage/logs/laravel.log`.
+
+## 🔒 Segurança
+
+- **Senhas**: Argon2id + pepper (`AUTH_PEPPER`) via `hash_password()`/`check_password()`.
+- **Admin web**: `/gestao-makis` exige `is_admin`, e-mail verificado e **2FA**.
+- **Admin API**: emissão de token para usuários privilegiados exige código 2FA; rotas admin exigem ability `2fa:verified` + ability por recurso (middleware `ApiAdminSecurity`).
+- **Tokens**: expiram em 30 dias.
+- **Headers**: middleware `SecurityHeaders` com CSP robusta.
+- **Uploads**: nome UUID + extensão derivada do conteúdo real (nunca do cliente).
+
+Relatório completo: [docs/security/security-best-practices-report.md](docs/security/security-best-practices-report.md).
+
+## 📂 Organização
+
+```
+app/                 Controllers (single-action na API), Models, Policies, Middleware
+modules/             Lógica de negócio (namespace Modules\, PSR-4)
+routes/              web, admin (prefixo configurável), api (v1), auth
+tests/               Feature (Admin, Api, Auth, Public) + Unit
+docs/                CI/CD, deploy, segurança, histórico
+scripts/             Scripts de deploy e otimização
+pipeline/            Microserviço de IA (Bun)
+```
+
+Referências para desenvolvimento: [AGENTS.md](AGENTS.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [SKILL.md](SKILL.md) · [CLAUDE.md](CLAUDE.md)
 
 ---
-**Makis Digital** - *Excelência em cada detalhe técnico.*
+
+**Makis Digital** — _Excelência em cada detalhe técnico._

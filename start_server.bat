@@ -1,5 +1,4 @@
 @echo off
 set PHPRC=%~dp0php.ini
-set PATH=%PATH%;C:\Program Files\PHP\8.5.4\nts\x64
 echo Iniciando Makis Digital com Seguranca Maxima...
-php -c "%~dp0php.ini" artisan serve
+"C:\php-8.4\php.exe" -c "%~dp0php.ini" -S 127.0.0.1:8000 -t "%~dp0public" "%~dp0server.php"
