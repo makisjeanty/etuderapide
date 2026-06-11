@@ -49,4 +49,44 @@ class Post extends Model
     {
         return $this->belongsToMany(Tag::class);
     }
+
+    public function scopeFilterBySearch($query, ?string $search)
+    {
+        return $query->when($search, function ($builder) use ($search) {
+            $term = '%'.$search.'%';
+            $builder->where(function ($nested) use ($term) {
+                $nested->where('title', 'like', $term)
+                    ->orWhere('slug', 'like', $term);
+            });
+        });
+    }
+
+    public function scopeFilterByCategory($query, ?int $categoryId)
+    {
+        return $query->when($categoryId, fn ($builder) => $builder->where('category_id', $categoryId));
+    }
+
+    public function scopeFilterByPublished($query, $isPublished)
+    {
+        return $query->when($isPublished !== null, fn ($builder) => $builder->where('is_published', (bool) $isPublished));
+    }
+
+    public function scopeFilterByDateRange($query, ?string $from, ?string $to)
+    {
+        return $query->when($from, fn ($builder) => $builder->whereDate('created_at', '>=', $from))
+            ->when($to, fn ($builder) => $builder->whereDate('created_at', '<=', $to));
+    }
+
+    public function scopeFilterByPublishedRange($query, ?string $from, ?string $to)
+    {
+        return $query->when($from, fn ($builder) => $builder->whereDate('published_at', '>=', $from))
+            ->when($to, fn ($builder) => $builder->whereDate('published_at', '<=', $to));
+    }
+
+    public function scopeFilterByTag($query, ?string $tag)
+    {
+        return $query->when($tag, function ($builder) use ($tag) {
+            $builder->whereHas('tags', fn ($tagQuery) => $tagQuery->where('slug', $tag)->orWhere('name', $tag));
+        });
+    }
 }

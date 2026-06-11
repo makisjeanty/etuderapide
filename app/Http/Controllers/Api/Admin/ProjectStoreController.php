@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Enums\ProjectStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\StoreProjectRequest;
+use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 
-class ProjectStoreController extends Controller
+class ProjectStoreController extends BaseApiController
 {
     public function __invoke(StoreProjectRequest $request): JsonResponse
     {
@@ -34,10 +35,6 @@ class ProjectStoreController extends Controller
             ], $request);
         }
 
-        return response()->json([
-            'data' => ProjectIndexController::serializeProject($project) + [
-                'description' => $project->description,
-            ],
-        ], 201);
+        return $this->respondWithResource($project, ProjectResource::class, 201);
     }
 }

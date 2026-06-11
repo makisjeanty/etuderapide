@@ -52,4 +52,32 @@ class Service extends Model
     {
         $query->where('is_active', true);
     }
+
+    public function scopeFilterBySearch($query, ?string $search)
+    {
+        return $query->when($search, function ($builder) use ($search) {
+            $term = '%'.$search.'%';
+            $builder->where(function ($nested) use ($term) {
+                $nested->where('name', 'like', $term)
+                    ->orWhere('slug', 'like', $term)
+                    ->orWhere('short_description', 'like', $term);
+            });
+        });
+    }
+
+    public function scopeFilterByCategory($query, ?int $categoryId)
+    {
+        return $query->when($categoryId, fn ($builder) => $builder->where('category_id', $categoryId));
+    }
+
+    public function scopeFilterByActive($query, $isActive)
+    {
+        return $query->when($isActive !== null, fn ($builder) => $builder->where('is_active', (bool) $isActive));
+    }
+
+    public function scopeFilterByDateRange($query, ?string $from, ?string $to)
+    {
+        return $query->when($from, fn ($builder) => $builder->whereDate('created_at', '>=', $from))
+            ->when($to, fn ($builder) => $builder->whereDate('created_at', '<=', $to));
+    }
 }

@@ -29,7 +29,7 @@ class AdminApiTest extends TestCase
             'status' => 'new',
         ]);
 
-        Sanctum::actingAs($admin, $admin->apiAbilities());
+        Sanctum::actingAs($admin, array_merge($admin->apiAbilities(), ['2fa:verified']));
 
         $this->getJson(route('api.admin.summary'))
             ->assertOk()
@@ -61,7 +61,7 @@ class AdminApiTest extends TestCase
             'status' => 'new',
         ]);
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $this->getJson(route('api.admin.leads.index', [
             'per_page' => 5,
@@ -80,7 +80,7 @@ class AdminApiTest extends TestCase
             'email_verified_at' => now(),
         ]);
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $this->getJson(route('api.admin.summary'))
             ->assertForbidden();
@@ -90,7 +90,7 @@ class AdminApiTest extends TestCase
     {
         $admin = User::factory()->admin()->unverified()->create();
 
-        Sanctum::actingAs($admin, $admin->apiAbilities());
+        Sanctum::actingAs($admin, array_merge($admin->apiAbilities(), ['2fa:verified']));
 
         $this->getJson(route('api.admin.summary'))
             ->assertForbidden();
@@ -115,7 +115,7 @@ class AdminApiTest extends TestCase
             'is_published' => false,
         ]);
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $this->getJson(route('api.admin.posts.index', [
             'search' => 'API',
@@ -150,7 +150,7 @@ class AdminApiTest extends TestCase
             'is_featured' => false,
         ]);
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $this->getJson(route('api.admin.projects.index', [
             'search' => 'Projeto API',
@@ -185,7 +185,7 @@ class AdminApiTest extends TestCase
             'is_active' => false,
         ]);
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $this->getJson(route('api.admin.services.index', [
             'search' => 'Servico API',
@@ -234,7 +234,7 @@ class AdminApiTest extends TestCase
             'updated_at' => now()->subDay(),
         ])->save();
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $this->getJson(route('api.admin.leads.index', [
             'status' => 'read',

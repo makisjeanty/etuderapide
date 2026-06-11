@@ -16,7 +16,7 @@ class AdminAccessTest extends TestCase
     {
         $response = $this->get(route('admin.dashboard'));
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(route('admin.login'));
     }
 
     public function test_verified_non_admin_cannot_access_admin(): void

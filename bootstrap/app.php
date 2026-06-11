@@ -8,6 +8,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 $trustedProxies = env('TRUSTED_PROXIES');
@@ -32,6 +33,26 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) use ($trustedProxies): void {
         // Trust proxies only when they are explicitly configured via TRUSTED_PROXIES.
         $middleware->trustProxies(at: $trustedProxies ?: null);
+
+        $middleware->redirectGuestsTo(function (Request $request): string {
+            $adminPrefix = trim((string) config('app.admin_prefix', 'gestao-makis'), '/');
+
+            if ($request->is($adminPrefix) || $request->is($adminPrefix.'/*')) {
+                return route('admin.login');
+            }
+
+            return route('login');
+        });
+
+        $middleware->redirectUsersTo(function (Request $request): string {
+            $user = $request->user();
+
+            if ($user && $user->canAccessAdminPanel()) {
+                return route('admin.dashboard');
+            }
+
+            return route('profile.edit');
+        });
 
         // Adiciona cabeçalhos de segurança a todas as rotas
         $middleware->append(SecurityHeaders::class);

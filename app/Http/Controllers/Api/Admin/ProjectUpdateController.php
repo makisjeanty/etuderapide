@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Enums\ProjectStatus;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\UpdateProjectRequest;
+use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 
-class ProjectUpdateController extends Controller
+class ProjectUpdateController extends BaseApiController
 {
     public function __invoke(UpdateProjectRequest $request, Project $project): JsonResponse
     {
@@ -34,10 +35,6 @@ class ProjectUpdateController extends Controller
             ], $request);
         }
 
-        return response()->json([
-            'data' => ProjectIndexController::serializeProject($project) + [
-                'description' => $project->description,
-            ],
-        ]);
+        return $this->respondWithResource($project, ProjectResource::class);
     }
 }

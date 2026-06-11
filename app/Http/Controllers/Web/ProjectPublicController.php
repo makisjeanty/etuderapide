@@ -14,6 +14,7 @@ class ProjectPublicController extends Controller
     {
         try {
             $projects = Project::query()
+                ->with('category')
                 ->where('status', ProjectStatus::Published)
                 ->orderByDesc('is_featured')
                 ->latest('updated_at')
@@ -30,6 +31,7 @@ class ProjectPublicController extends Controller
     {
         try {
             $project = Project::query()
+                ->with('category')
                 ->where('slug', $slug)
                 ->where('status', ProjectStatus::Published)
                 ->firstOrFail();

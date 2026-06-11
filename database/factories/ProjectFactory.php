@@ -29,7 +29,7 @@ class ProjectFactory extends Factory
             'description' => $this->faker->paragraphs(4, true),
             'status' => ProjectStatus::Draft,
             'featured_image' => null,
-            'tech_stack_lines' => "Laravel\nTailwind CSS",
+            'tech_stack' => ['Laravel', 'Tailwind CSS'],
             'repository_url' => $this->faker->optional()->url(),
             'demo_url' => $this->faker->optional()->url(),
             'started_at' => now()->subMonths(2),

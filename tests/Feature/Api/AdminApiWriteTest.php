@@ -21,7 +21,7 @@ class AdminApiWriteTest extends TestCase
         $user = User::factory()->create(['email_verified_at' => now()]);
         $user->givePermissionTo('manage-posts');
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $create = $this->postJson(route('api.v1.admin.posts.store'), [
             'title' => 'Post API V1',
@@ -55,7 +55,7 @@ class AdminApiWriteTest extends TestCase
         $user = User::factory()->create(['email_verified_at' => now()]);
         $user->givePermissionTo('manage-projects');
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $create = $this->postJson(route('api.v1.admin.projects.store'), [
             'title' => 'Projeto API V1',
@@ -92,7 +92,7 @@ class AdminApiWriteTest extends TestCase
         $user = User::factory()->create(['email_verified_at' => now()]);
         $user->givePermissionTo('manage-services');
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $create = $this->postJson(route('api.v1.admin.services.store'), [
             'name' => 'Servico API V1',
@@ -135,7 +135,7 @@ class AdminApiWriteTest extends TestCase
             'status' => 'new',
         ]);
 
-        Sanctum::actingAs($user, $user->apiAbilities());
+        Sanctum::actingAs($user, array_merge($user->apiAbilities(), ['2fa:verified']));
 
         $this->patchJson(route('api.v1.admin.leads.update', ['lead' => $lead->id]), [
             'status' => 'replied',

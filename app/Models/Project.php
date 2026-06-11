@@ -59,4 +59,43 @@ class Project extends Model
     {
         $query->where('status', ProjectStatus::Published);
     }
+
+    public function scopeFilterBySearch($query, ?string $search)
+    {
+        return $query->when($search, function ($builder) use ($search) {
+            $term = '%'.$search.'%';
+            $builder->where(function ($nested) use ($term) {
+                $nested->where('title', 'like', $term)
+                    ->orWhere('slug', 'like', $term)
+                    ->orWhere('summary', 'like', $term);
+            });
+        });
+    }
+
+    public function scopeFilterByCategory($query, ?int $categoryId)
+    {
+        return $query->when($categoryId, fn ($builder) => $builder->where('category_id', $categoryId));
+    }
+
+    public function scopeFilterByStatus($query, ?string $status)
+    {
+        return $query->when($status, fn ($builder) => $builder->where('status', $status));
+    }
+
+    public function scopeFilterByFeatured($query, $isFeatured)
+    {
+        return $query->when($isFeatured !== null, fn ($builder) => $builder->where('is_featured', (bool) $isFeatured));
+    }
+
+    public function scopeFilterByDateRange($query, ?string $from, ?string $to)
+    {
+        return $query->when($from, fn ($builder) => $builder->whereDate('created_at', '>=', $from))
+            ->when($to, fn ($builder) => $builder->whereDate('created_at', '<=', $to));
+    }
+
+    public function scopeFilterByFinishedRange($query, ?string $from, ?string $to)
+    {
+        return $query->when($from, fn ($builder) => $builder->whereDate('finished_at', '>=', $from))
+            ->when($to, fn ($builder) => $builder->whereDate('finished_at', '<=', $to));
+    }
 }
