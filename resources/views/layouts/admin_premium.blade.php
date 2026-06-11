@@ -22,48 +22,53 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
+    <!-- Skip to main content -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:bg-white focus:text-slate-900 focus:px-4 focus:py-2 focus:rounded focus:shadow-lg focus:outline-none">
+        Ir para o conteúdo principal
+    </a>
+
     <!-- Sidebar -->
     <aside class="sidebar glass-panel">
         <div class="flex items-center space-x-3 mb-10 px-4">
             <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-                <i class="fas fa-bolt text-slate-900 text-xl"></i>
+                <i class="fas fa-bolt text-slate-900 text-xl" aria-hidden="true"></i>
             </div>
             <span class="text-xl font-bold tracking-tight">Makis <span class="text-amber-500">Digital</span></span>
         </div>
 
         <nav class="space-y-1">
             <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <i class="fas fa-chart-pie w-6"></i>
+                <i class="fas fa-chart-pie w-6" aria-hidden="true"></i>
                 <span>Dashboard</span>
             </a>
 
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-6 mb-2 px-4">Conteúdo</div>
             
             <a href="{{ route('admin.posts.index') }}" class="sidebar-link {{ request()->routeIs('admin.posts.*') ? 'active' : '' }}">
-                <i class="fas fa-file-alt w-6"></i>
+                <i class="fas fa-file-alt w-6" aria-hidden="true"></i>
                 <span>Blog Posts</span>
             </a>
             <a href="{{ route('admin.projects.index') }}" class="sidebar-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
-                <i class="fas fa-briefcase w-6"></i>
+                <i class="fas fa-briefcase w-6" aria-hidden="true"></i>
                 <span>Projetos</span>
             </a>
             <a href="{{ route('admin.services.index') }}" class="sidebar-link {{ request()->routeIs('admin.services.*') ? 'active' : '' }}">
-                <i class="fas fa-concierge-bell w-6"></i>
+                <i class="fas fa-concierge-bell w-6" aria-hidden="true"></i>
                 <span>Serviços</span>
             </a>
 
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-6 mb-2 px-4">Gestão</div>
             
             <a href="{{ route('admin.leads.index') }}" class="sidebar-link {{ request()->routeIs('admin.leads.*') ? 'active' : '' }}">
-                <i class="fas fa-envelope-open-text w-6"></i>
+                <i class="fas fa-envelope-open-text w-6" aria-hidden="true"></i>
                 <span>Leads</span>
             </a>
             <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                <i class="fas fa-users w-6"></i>
+                <i class="fas fa-users w-6" aria-hidden="true"></i>
                 <span>Equipe</span>
             </a>
             <a href="{{ route('admin.audit-logs.index') }}" class="sidebar-link {{ request()->routeIs('admin.audit-logs.*') ? 'active' : '' }}">
-                <i class="fas fa-shield-alt w-6"></i>
+                <i class="fas fa-shield-alt w-6" aria-hidden="true"></i>
                 <span>Auditoria</span>
             </a>
         </nav>
@@ -79,8 +84,8 @@
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="text-slate-400 hover:text-red-400 transition-colors">
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button type="submit" aria-label="Sair da conta" class="text-slate-400 hover:text-red-400 transition-colors">
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                     </button>
                 </form>
             </div>
@@ -88,7 +93,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main id="main-content" class="main-content">
         <!-- Top Bar -->
         <header class="flex justify-between items-center mb-10">
             <div>
@@ -98,11 +103,11 @@
             
             <div class="flex items-center space-x-4">
                 <div class="glass-panel px-4 py-2 flex items-center space-x-3">
-                    <i class="fas fa-search text-slate-500"></i>
-                    <input type="text" placeholder="Buscar..." class="bg-transparent border-none focus:ring-0 text-sm w-48 text-slate-200">
+                    <i class="fas fa-search text-slate-500" aria-hidden="true"></i>
+                    <input type="text" placeholder="Buscar..." aria-label="Buscar no painel" class="bg-transparent border-none focus:ring-0 text-sm w-48 text-slate-200">
                 </div>
-                <button class="w-12 h-12 glass-panel flex items-center justify-center text-slate-400 hover:text-amber-500 transition-colors">
-                    <i class="fas fa-bell"></i>
+                <button class="w-12 h-12 glass-panel flex items-center justify-center text-slate-400 hover:text-amber-500 transition-colors" aria-label="Notificações">
+                    <i class="fas fa-bell" aria-hidden="true"></i>
                 </button>
                 <a href="{{ url('/') }}" target="_blank" class="premium-btn">
                     Ver Site <i class="fas fa-external-link-alt ml-2"></i>
@@ -111,8 +116,8 @@
         </header>
 
         @if (session('success'))
-            <div class="glass-panel p-4 mb-6 border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center">
-                <i class="fas fa-check-circle mr-3"></i>
+            <div role="alert" class="glass-panel p-4 mb-6 border-emerald-500/30 bg-emerald-500/10 text-emerald-400 flex items-center">
+                <i class="fas fa-check-circle mr-3" aria-hidden="true"></i>
                 {{ session('success') }}
             </div>
         @endif

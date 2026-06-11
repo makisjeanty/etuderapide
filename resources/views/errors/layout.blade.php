@@ -21,35 +21,35 @@
         }
     </script>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        body { background-color: #faf9f5; color: #141413; }
+        .ant-card { background: #ffffff; border: 1px solid rgba(20, 20, 19, 0.10); }
     </style>
 </head>
 <body class="h-full flex items-center justify-center p-6">
     <div class="max-w-xl w-full text-center">
-        <div class="mb-8 inline-flex p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+        <div class="mb-8 inline-flex p-4 rounded-2xl bg-[#d97757]/10 border border-[#d97757]/20 text-[#d97757]">
             @yield('icon')
         </div>
         
-        <h1 class="text-5xl md:text-6xl font-bold font-heading mb-4 text-white">@yield('code')</h1>
-        <h2 class="text-2xl font-semibold mb-6 text-slate-200">@yield('message')</h2>
+        <h1 class="text-5xl md:text-6xl font-bold font-heading mb-4 text-[#141413]">@yield('code')</h1>
+        <h2 class="text-2xl font-semibold mb-6 text-[#3d3d3a]">@yield('message')</h2>
         
-        <div class="glass p-8 rounded-3xl mb-10">
-            <p class="text-slate-400 mb-8 leading-relaxed">
+        <div class="ant-card p-8 rounded-3xl mb-10 shadow-xs">
+            <p class="text-[#5e5d59] mb-8 leading-relaxed">
                 @yield('description')
             </p>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="{{ url('/') }}" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-500/25">
+                <a href="{{ url('/') }}" class="px-8 py-3 bg-[#d97757] hover:bg-[#c6613f] text-white font-bold rounded-xl transition-all shadow-sm">
                     Voltar para Home
                 </a>
-                <a href="{{ url('/contact') }}" class="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border border-slate-700">
+                <a href="{{ url('/contato') }}" class="px-8 py-3 bg-[#141413] hover:bg-[#3d3d3a] text-[#faf9f5] font-bold rounded-xl transition-all border border-[#141413]">
                     Falar com Suporte
                 </a>
             </div>
         </div>
         
-        <p class="text-slate-500 text-sm">
+        <p class="text-[#5e5d59] text-sm">
             &copy; {{ date('Y') }} Makis Digital. Excelência em cada detalhe.
         </p>
     </div>
